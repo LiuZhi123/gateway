@@ -55,6 +55,8 @@ spring:
             - StripPrefix=1     # StripPrefix参数表示在将请求发送到下游之前从请求中剥离的路径个数
   application:
     name:  gateway
+  main:
+    allow-bean-definition-overriding: true
 #          七张图界面
 
 
