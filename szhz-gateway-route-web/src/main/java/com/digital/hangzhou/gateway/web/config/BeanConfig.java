@@ -1,7 +1,10 @@
 package com.digital.hangzhou.gateway.web.config;
 
+import cn.hutool.core.collection.CollUtil;
+import com.digital.hangzhou.gateway.web.predicate.ConsumerPredicateFactory;
 import com.digital.hangzhou.gateway.web.predicate.HtmlResourceRoutePredicateFactory;
 import com.digital.hangzhou.gateway.web.component.RedisRouteDefinitionRepository;
+import com.digital.hangzhou.gateway.web.predicate.WhiteIpPredicateFactory;
 import com.digital.hangzhou.gateway.web.util.RedisEventListener;
 
 import org.springframework.cloud.gateway.config.GatewayProperties;
@@ -40,11 +43,11 @@ public class BeanConfig {
 //    自定义路由管理器，自定义的断言工厂与过滤器工厂需要在此处添加
     @Bean
     public RouteLocator customRouteLocator(GatewayProperties properties, List<GatewayFilterFactory> gatewayFilterFactories,
-                                     List<RoutePredicateFactory> predicateFactories, RedisRouteDefinitionRepository redisRouteDefinitionRepository,
+                                     List<RoutePredicateFactory> predicateFactories, RouteDefinitionLocator routeDefinitionLocator,
                                      ConfigurationService service){
         //增加自定义断言工厂
-        predicateFactories.add(new HtmlResourceRoutePredicateFactory());
-        return new RouteDefinitionRouteLocator(redisRouteDefinitionRepository, predicateFactories, gatewayFilterFactories, properties, service);
+        predicateFactories.addAll(CollUtil.newArrayList(new ConsumerPredicateFactory(), new WhiteIpPredicateFactory()));
+        return new RouteDefinitionRouteLocator(routeDefinitionLocator, predicateFactories, gatewayFilterFactories, properties, service);
     }
 
 
@@ -62,9 +65,7 @@ public class BeanConfig {
         //添加指定的消息监听器和监听键
         redisMessageListenerContainer.addMessageListener(redisEventListener, channelTopic());
         //配置自定义线程池处理消息
-        redisMessageListenerContainer.setTaskExecutor(gatewayExecutor);
+//        redisMessageListenerContainer.setTaskExecutor(gatewayExecutor);
         return  redisMessageListenerContainer;
     }
-
-
 }

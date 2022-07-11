@@ -19,7 +19,7 @@ import java.util.Map;
 import static java.util.Collections.synchronizedMap;
 
 
-@Component
+//@Component
 public class RedisRouteDefinitionRepository implements RouteDefinitionRepository {
     @Resource
     private RedisTemplate redisTemplate;
@@ -32,7 +32,7 @@ public class RedisRouteDefinitionRepository implements RouteDefinitionRepository
 
     @Override
     public Flux<RouteDefinition> getRouteDefinitions() {
-        return locator.getRouteDefinitions();
+        return Flux.fromIterable(routes.values());
     }
 
     @Override
@@ -43,9 +43,8 @@ public class RedisRouteDefinitionRepository implements RouteDefinitionRepository
                 return Mono.error(new NotFoundException("no route Id found"));
             }
             routes.put(r.getId(),r);
-            //todo redis存储,同时发送redis通知键事件
             redisTemplate.opsForValue().set(r.getId(),r);
-//            redisTemplate.opsForValue().set();
+            //todo  发送redis通知键事件
             return Mono.empty();
         });
     }
@@ -55,6 +54,9 @@ public class RedisRouteDefinitionRepository implements RouteDefinitionRepository
         return routeId.flatMap(r->{
             if (true){
                 //判空处理，如果routeId为空则抛出异常
+                routes.remove(routeId);
+                redisTemplate.delete(routeId);
+                //todo  发送redis通知键事件
                 return Mono.empty();
             }
             return Mono.defer(()-> Mono.error(new NotFoundException("根据路由ID查找路由失败: " + routeId)));

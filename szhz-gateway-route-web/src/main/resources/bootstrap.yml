@@ -12,52 +12,52 @@ spring:
         dashboard: 42.192.71.210:8849
       eager: true
 
-    gateway:
-      routes:
-#        防汛防台PC端
-        - id: host_route1  #API编号，路由的唯一标识，为szhz-api-gateway发送生成路由请求时传递的值
-          uri: https://ibcdsg.zj.gov.cn:8443 #请求的目标路径
-          predicates:
-            - Path=/baidu/** #路径断言匹配规则,此处为API_CODE
-
-#            - Consumer=HTML_321165597298341249255892191_APP_6006001655971,HTML_321165597298341249255892191_APP_6006001655972
-#                             #可选的消费者断言工厂，开启ak鉴权时增加此断言，在消费者断言工厂中会从请求头或参数中获取请求的ak与这里配置的消费者列表
-#                             #做匹配，匹配到则通过断言
+#    gateway:
+#      routes:
+##        防汛防台PC端
+#        - id: host_route1  #API编号，路由的唯一标识，为szhz-api-gateway发送生成路由请求时传递的值
+#          uri: https://ibcdsg.zj.gov.cn:8443 #请求的目标路径
+#          predicates:
+#            - Path=/baidu/** #路径断言匹配规则,此处为API_CODE
 #
-#            - IpRestricition #可选的IP白名单断言工厂，开启IP白名单鉴权时增加此断言工厂，从请求头或参数中确认命中的消费者信息，从缓存中获取
-#                             #消费者-IP白名单关系，与请求的remoteAddr匹配判断
-          filters:
-            - StripPrefix=1     # StripPrefix参数表示在将请求发送到下游之前从请求中剥离的路径个数，
-                                # 即在转发真实的请求至下游时去除请求中的断言路径
-
-            - AddRequestHeader=ak,value  #可选的添加请求头过滤器，根据API配置的鉴权模板信息，在路由转发至下游之前在请求头中添加参数
-            - AddRequestHeader=sk,value  #可配置多组过滤器来添加不同的请求头参数
-
-#        防汛防台PC端（自动登录）
-        - id: host_route2
-          uri: https://ibcdsg.zj.gov.cn:8443
-          predicates:
-            - Path=/grassRoots/**
+##            - Consumer=HTML_321165597298341249255892191_APP_6006001655971,HTML_321165597298341249255892191_APP_6006001655972
+##                             #可选的消费者断言工厂，开启ak鉴权时增加此断言，在消费者断言工厂中会从请求头或参数中获取请求的ak与这里配置的消费者列表
+##                             #做匹配，匹配到则通过断言
+##
+##            - IpRestricition #可选的IP白名单断言工厂，开启IP白名单鉴权时增加此断言工厂，从请求头或参数中确认命中的消费者信息，从缓存中获取
+##                             #消费者-IP白名单关系，与请求的remoteAddr匹配判断
+#          filters:
+#            - StripPrefix=1     # StripPrefix参数表示在将请求发送到下游之前从请求中剥离的路径个数，
+#                                # 即在转发真实的请求至下游时去除请求中的断言路径
+#
+#            - AddRequestHeader=ak,value  #可选的添加请求头过滤器，根据API配置的鉴权模板信息，在路由转发至下游之前在请求头中添加参数
+#            - AddRequestHeader=sk,value  #可配置多组过滤器来添加不同的请求头参数
+#
+##        防汛防台PC端（自动登录）
+#        - id: host_route2
+#          uri: https://ibcdsg.zj.gov.cn:8443
+#          predicates:
+#            - Path=/grassRoots/**
+##          filters:
+##            - StripPrefix=1     # StripPrefix参数表示在将请求发送到下游之前从请求中剥离的路径个数
+#
+##        防汛防台移动端
+#        - id: host_route3
+#          uri: https://yjydd.yjt.zj.gov.cn
+#          predicates:
+#            - Path=/static/**
+##        防汛防台移动端
+#        - id: host_route4
+#          uri: https://yjydd.yjt.zj.gov.cn
+#          predicates:
+#            - Path=/test/**
 #          filters:
 #            - StripPrefix=1     # StripPrefix参数表示在将请求发送到下游之前从请求中剥离的路径个数
 
-#        防汛防台移动端
-        - id: host_route3
-          uri: https://yjydd.yjt.zj.gov.cn
-          predicates:
-            - Path=/static/**
-#        防汛防台移动端
-        - id: host_route4
-          uri: https://yjydd.yjt.zj.gov.cn
-          predicates:
-            - Path=/test/**
-          filters:
-            - StripPrefix=1     # StripPrefix参数表示在将请求发送到下游之前从请求中剥离的路径个数
   application:
     name:  gateway
   main:
     allow-bean-definition-overriding: true
-#          七张图界面
 
 
 management:

@@ -6,7 +6,6 @@ import org.springframework.web.server.ServerWebExchange;
 
 import java.util.function.Predicate;
 
-@Component
 public class HtmlResourceRoutePredicateFactory extends AbstractRoutePredicateFactory<HtmlResourceRoutePredicateFactory.Config> {
 
     public HtmlResourceRoutePredicateFactory(){
