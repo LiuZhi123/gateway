@@ -1,24 +1,21 @@
 package com.digital.hangzhou.gateway.web.config;
 
 import cn.hutool.core.collection.CollUtil;
+import com.digital.hangzhou.gateway.web.filter.ParamRemoveFilter;
 import com.digital.hangzhou.gateway.web.predicate.ConsumerPredicateFactory;
-import com.digital.hangzhou.gateway.web.predicate.HtmlResourceRoutePredicateFactory;
-import com.digital.hangzhou.gateway.web.component.RedisRouteDefinitionRepository;
 import com.digital.hangzhou.gateway.web.predicate.WhiteIpPredicateFactory;
-import com.digital.hangzhou.gateway.web.util.RedisEventListener;
+import com.digital.hangzhou.gateway.web.listener.RedisEventListener;
 
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
-import org.springframework.cloud.gateway.route.RouteDefinitionRepository;
 import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 
@@ -28,10 +25,10 @@ import java.util.List;
 import java.util.concurrent.Executor;
 
 @Configuration
-public class BeanConfig {
+public class GatewayConfig {
 
     //定义触发redis事件的key操作
-    private static String KEYEVENT_SET_TOPIC = "__keyevent@0__:set";
+    private static String KEYEVENT_SET_TOPIC = "__keyevent@0__:set gatewayNotify";
 
     @Resource
     private RedisEventListener redisEventListener;

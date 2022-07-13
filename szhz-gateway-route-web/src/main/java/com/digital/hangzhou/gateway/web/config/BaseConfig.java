@@ -25,7 +25,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 @Order(1)
 @Configuration
-public class BaseConfiguration {
+public class BaseConfig {
 
     @Bean
     public Executor gatewayExecutor(){

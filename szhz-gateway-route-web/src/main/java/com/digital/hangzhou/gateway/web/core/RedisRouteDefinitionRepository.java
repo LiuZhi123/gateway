@@ -1,6 +1,8 @@
-package com.digital.hangzhou.gateway.web.component;
+package com.digital.hangzhou.gateway.web.core;
 
 import cn.hutool.core.util.StrUtil;
+import com.custom.starters.customwebspringbootstarters.util.Assert;
+import com.digital.hangzhou.gateway.web.event.RefreshRouteEvent;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.RouteDefinitionRepository;
@@ -14,18 +16,18 @@ import reactor.core.publisher.Mono;
 
 import javax.annotation.Resource;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.synchronizedMap;
 
 
-//@Component
+@Component
 public class RedisRouteDefinitionRepository implements RouteDefinitionRepository {
     @Resource
     private RedisTemplate redisTemplate;
     @Resource
-    private RouteDefinitionLocator locator;
-
+    private RefreshRouteEvent refreshRouteEvent;
 
     private final Map<String, RouteDefinition> routes = synchronizedMap(
             new LinkedHashMap<String, RouteDefinition>());
@@ -39,12 +41,12 @@ public class RedisRouteDefinitionRepository implements RouteDefinitionRepository
     public Mono<Void> save(Mono<RouteDefinition> route) {
 
         return route.flatMap(r->{
-            if (StrUtil.isEmpty(r.getId())){
-                return Mono.error(new NotFoundException("no route Id found"));
+            if (StrUtil.isBlank(r.getId())){
+                return Mono.error(new NotFoundException("路由数据已存在，请检查后重新提交!"));
             }
+            refreshRouteEvent.save(r);
             routes.put(r.getId(),r);
             redisTemplate.opsForValue().set(r.getId(),r);
-            //todo  发送redis通知键事件
             return Mono.empty();
         });
     }
@@ -52,17 +54,18 @@ public class RedisRouteDefinitionRepository implements RouteDefinitionRepository
     @Override
     public Mono<Void> delete(Mono<String> routeId) {
         return routeId.flatMap(r->{
-            if (true){
+            if (StrUtil.isNotBlank(r)){
                 //判空处理，如果routeId为空则抛出异常
-                routes.remove(routeId);
-                redisTemplate.delete(routeId);
-                //todo  发送redis通知键事件
+                refreshRouteEvent.delete(r);
+                routes.remove(r);
+                redisTemplate.delete(r);
                 return Mono.empty();
             }
             return Mono.defer(()-> Mono.error(new NotFoundException("根据路由ID查找路由失败: " + routeId)));
         });
-
     }
 
-
+    public void saveBatch(List<RouteDefinition> routeDefinitionList){
+        refreshRouteEvent.saveBatch(routeDefinitionList);
+    }
 }

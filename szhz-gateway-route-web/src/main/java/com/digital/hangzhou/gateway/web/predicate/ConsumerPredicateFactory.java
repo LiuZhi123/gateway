@@ -33,11 +33,11 @@ public class ConsumerPredicateFactory extends AbstractRoutePredicateFactory<Cons
             @Override
             public boolean test(ServerWebExchange exchange) {
                 MultiValueMap<String, String> params = exchange.getRequest().getQueryParams();
-                List<String> appCode = params.get(RouteInfoConstant.APP_CODE);
+                List<String> appCode = params.get(RouteInfoConstant.API_KEY);
                 if (CollUtil.isEmpty(appCode)){
-                    appCode = exchange.getRequest().getHeaders().get(RouteInfoConstant.APP_CODE);
+                    appCode = exchange.getRequest().getHeaders().get(RouteInfoConstant.API_KEY);
                 }
-                if (CollUtil.isEmpty(appCode) ||  !config.consumerCodes.contains(appCode.get(0))){
+                if (CollUtil.isEmpty(appCode) || !config.consumerCodes.contains(appCode.get(0))){
                     return false;
                 }
                 return true;
