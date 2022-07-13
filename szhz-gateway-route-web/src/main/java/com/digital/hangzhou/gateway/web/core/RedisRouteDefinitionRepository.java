@@ -1,14 +1,11 @@
 package com.digital.hangzhou.gateway.web.core;
 
 import cn.hutool.core.util.StrUtil;
-import com.custom.starters.customwebspringbootstarters.util.Assert;
 import com.digital.hangzhou.gateway.web.event.RefreshRouteEvent;
+import com.digital.hangzhou.gateway.web.util.SentinelRuleUtil;
 import org.springframework.cloud.gateway.route.RouteDefinition;
-import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.RouteDefinitionRepository;
-import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.support.NotFoundException;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;

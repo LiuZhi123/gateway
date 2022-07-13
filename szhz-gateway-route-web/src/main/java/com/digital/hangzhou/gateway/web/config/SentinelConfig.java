@@ -12,6 +12,7 @@ import com.alibaba.csp.sentinel.adapter.gateway.sc.callback.BlockRequestHandler;
 import com.alibaba.csp.sentinel.adapter.gateway.sc.callback.GatewayCallbackManager;
 import com.alibaba.csp.sentinel.adapter.gateway.sc.exception.SentinelGatewayBlockExceptionHandler;
 
+import com.digital.hangzhou.gateway.common.constant.RedisConstant;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.context.annotation.Bean;
@@ -62,6 +63,13 @@ public class SentinelConfig {
         return new SentinelGatewayFilter();
     }
 
+    @Bean
+    public Set<GatewayFlowRule> gatewayFlowRules(){
+        return Collections.synchronizedSet(GatewayRuleManager.getRules());
+    }
+
+
+
     @PostConstruct
     public void doInit(){
         // 加载网关限流规则
@@ -75,25 +83,14 @@ public class SentinelConfig {
      * 建议直接在 Sentinel 控制台上配置
      */
     private void initGatewayRules() {
-        /*
-            resource：资源名称，可以是网关中的 route 名称或者用户自定义的 API 分组名称
-            count：限流阈值
-            intervalSec：统计时间窗口，单位是秒，默认是 1 秒
-         */
-        // rules.add(new GatewayFlowRule("order-service")
-        //         .setCount(3) // 限流阈值
-        //         .setIntervalSec(60)); // 统计时间窗口，单位是秒，默认是 1 秒
-
-        //初始化限流规则，从redis加载
-        Set<GatewayFlowRule> rules = (Set<GatewayFlowRule>) redisTemplate.opsForValue().get("");
-        // 加载网关限流规则
+        // 从缓存加载网关限流规则
+        Set<GatewayFlowRule> rules = redisTemplate.opsForSet().members(RedisConstant.SENTINEL_RULES);
         GatewayRuleManager.loadRules(rules);
     }
 
     /**
      * 自定义限流异常处理器
      */
-    @PostConstruct
     private void initBlockHandler() {
         BlockRequestHandler blockRequestHandler = new BlockRequestHandler() {
             @Override
@@ -110,9 +107,6 @@ public class SentinelConfig {
         // 加载自定义限流异常处理器
         GatewayCallbackManager.setBlockHandler(blockRequestHandler);
     }
-
-
-
 
 
 }

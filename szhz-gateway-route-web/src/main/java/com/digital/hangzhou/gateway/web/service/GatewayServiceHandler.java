@@ -5,6 +5,7 @@ import com.digital.hangzhou.gateway.common.constant.RedisConstant;
 import com.digital.hangzhou.gateway.common.request.ReleaseRequest;
 import com.digital.hangzhou.gateway.web.core.RedisRouteDefinitionRepository;
 import com.digital.hangzhou.gateway.web.util.RouteDefinitionUtil;
+import com.digital.hangzhou.gateway.web.util.SentinelRuleUtil;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -24,6 +25,9 @@ public class GatewayServiceHandler implements CommandLineRunner {
 
     @Resource
     private RedisTemplate redisTemplate;
+
+    @Resource
+    private SentinelRuleUtil sentinelRuleUtil;
 
     //容器启动后从缓存中加载路由信息
     @Override
@@ -46,11 +50,13 @@ public class GatewayServiceHandler implements CommandLineRunner {
         RouteDefinition routeDefinition = RouteDefinitionUtil.getApiRouteDefinition(request);
         //保存路由信息至内存
         redisRouteDefinitionRepository.save(Mono.just(routeDefinition));
+        sentinelRuleUtil.addGatewaySentinelRule(request.getApiCode(), request.getConfig());
     }
 
     public void delete(String routeId){
         //根据路由ID删除路由
         redisRouteDefinitionRepository.delete(Mono.just(routeId));
+        //todo 删除路由规则
     }
 
 

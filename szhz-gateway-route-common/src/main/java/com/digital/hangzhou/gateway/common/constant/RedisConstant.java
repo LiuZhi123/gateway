@@ -4,4 +4,6 @@ public class RedisConstant {
     public static final String ROUTE_PREFIX = "routes:";
 
     public static final String CONSUMER_PREFIX = "consumer:";
+
+    public static final String SENTINEL_RULES = "sentinel_rules";
 }
