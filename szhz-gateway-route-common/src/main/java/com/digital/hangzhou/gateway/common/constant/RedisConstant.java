@@ -3,7 +3,7 @@ package com.digital.hangzhou.gateway.common.constant;
 public class RedisConstant {
     public static final String ROUTE_KEY = "gatewayRoutes";
 
-    public static final String CONSUMER_KEY = "consumer";
+    public static final String CONSUMER_KEY = "consumerInfo";
 
     public static final String SENTINEL_RULES = "sentinelRules";
 

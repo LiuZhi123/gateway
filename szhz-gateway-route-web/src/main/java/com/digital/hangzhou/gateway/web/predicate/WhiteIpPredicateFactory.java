@@ -40,8 +40,8 @@ public class WhiteIpPredicateFactory extends AbstractRoutePredicateFactory<White
                 if (CollUtil.isEmpty(appCode)){
                     return false;
                 }
-                String key = RedisConstant.CONSUMER_PREFIX + appCode;
-                Set<String> whiteIpList =  (Set<String>) redisTemplate.opsForValue().get(key);
+                //todo IP白名单考虑多网卡情况
+                Set<String> whiteIpList =  (Set<String>) redisTemplate.opsForHash().get(RedisConstant.CONSUMER_KEY, appCode);
                 if (!whiteIpList.contains(remoteIp)){
                     return false;
                 }

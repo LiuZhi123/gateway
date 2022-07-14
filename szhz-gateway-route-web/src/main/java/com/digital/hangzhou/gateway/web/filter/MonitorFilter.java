@@ -14,6 +14,7 @@ import reactor.core.publisher.Mono;
 public class MonitorFilter implements GlobalFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        //todo 监控完善
         ServerHttpRequest request = exchange.getRequest();
         return chain.filter(exchange);
     }

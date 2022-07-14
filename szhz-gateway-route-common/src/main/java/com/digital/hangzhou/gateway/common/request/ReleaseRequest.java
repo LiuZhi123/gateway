@@ -97,14 +97,10 @@ public class ReleaseRequest {
     private String config;
 
     /**
-     * Ip白名单列表
-     */
-    private HashMap<String, List<String>> ipList;
-
-    /**
      * 消费者白名单
      */
     private List<String> consumerList;
+
 
     /**
      *部门编号，用于基于部门维度统计数据
@@ -112,7 +108,7 @@ public class ReleaseRequest {
     private String mainOrgCode;
 
     /**
-     *
+     * 鉴权模板信息
      */
-    private Map<String, String> appInfo;
+    private Map<String,String> authTemplate;
 }

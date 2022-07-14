@@ -42,6 +42,7 @@ public class RedisRouteDefinitionRepository implements RouteDefinitionRepository
             if (StrUtil.isBlank(r.getId())){
                 return Mono.error(new NotFoundException("路由数据已存在，请检查后重新提交!"));
             }
+            //todo redis写操作考虑多线程安全性问题
             redisTemplate.opsForHash().put(RedisConstant.ROUTE_KEY,r.getId(),r);
             LocalCacheRepository.ROUTE_DEFINITION_CACHE.put(r.getId(),r);
             refreshRouteEvent.saveAndNotify(r);
