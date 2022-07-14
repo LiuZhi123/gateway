@@ -6,6 +6,7 @@ import com.digital.hangzhou.gateway.common.request.ReleaseRequest;
 import com.digital.hangzhou.gateway.web.core.RedisRouteDefinitionRepository;
 import com.digital.hangzhou.gateway.web.util.RouteDefinitionUtil;
 import com.digital.hangzhou.gateway.web.util.SentinelRuleUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -14,9 +15,8 @@ import reactor.core.publisher.Mono;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.Set;
 
-
+@Slf4j
 @Service
 public class GatewayServiceHandler implements CommandLineRunner {
 
@@ -32,13 +32,11 @@ public class GatewayServiceHandler implements CommandLineRunner {
     //容器启动后从缓存中加载路由信息
     @Override
     public void run(String... args) {
-        System.out.println("------------------>开始加载路由信息");
-        Set<String> keys = redisTemplate.keys(RedisConstant.ROUTE_PREFIX);
         //从缓存中加载路由信息
-        if (CollUtil.isNotEmpty(keys)){
-            List<RouteDefinition> routeDefinitionList = redisTemplate.opsForValue().multiGet(keys);
-            redisRouteDefinitionRepository.saveBatch(routeDefinitionList);
-        }
+        List<RouteDefinition> routeDefinitionList = redisTemplate.opsForHash().values(RedisConstant.ROUTE_KEY);
+        log.info("<-------系统初始化从缓存加载路由信息%d条-------->", routeDefinitionList.size());
+        redisRouteDefinitionRepository.saveBatch(routeDefinitionList);
+        log.info("<------------初始化路由信息加载完毕------------------>");
     }
 
     /**
@@ -56,8 +54,6 @@ public class GatewayServiceHandler implements CommandLineRunner {
     public void delete(String routeId){
         //根据路由ID删除路由
         redisRouteDefinitionRepository.delete(Mono.just(routeId));
-        //todo 删除路由规则
+        sentinelRuleUtil.delGatewaySentinelRule(routeId);
     }
-
-
 }

@@ -1,10 +1,12 @@
 package com.digital.hangzhou.gateway.web.config;
 
 import cn.hutool.core.collection.CollUtil;
+import com.digital.hangzhou.gateway.common.constant.RedisConstant;
+import com.digital.hangzhou.gateway.web.listener.AddRouteListener;
 import com.digital.hangzhou.gateway.web.listener.RefreshSentinelRulesListener;
 import com.digital.hangzhou.gateway.web.predicate.ConsumerPredicateFactory;
 import com.digital.hangzhou.gateway.web.predicate.WhiteIpPredicateFactory;
-import com.digital.hangzhou.gateway.web.listener.RefreshRouteListener;
+import com.digital.hangzhou.gateway.web.listener.DelRouteListener;
 
 import org.springframework.cloud.gateway.config.GatewayProperties;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
@@ -26,14 +28,11 @@ import java.util.concurrent.Executor;
 
 @Configuration
 public class GatewayConfig {
-
-    //触发redis事件的key操作
-    private static String REFRESH_ROUTE_TOPIC = "__keyevent@0__:set refreshRoute";
-
-    private static String REFRESH_SENTINEL_RULES_TOPIC = "__keyevent@0__:set refreshSentinel";
+    @Resource
+    private AddRouteListener addRouteListener;
 
     @Resource
-    private RefreshRouteListener refreshRouteListener;
+    private DelRouteListener delRouteListener;
 
     @Resource
     private RefreshSentinelRulesListener refreshSentinelRulesListener;
@@ -62,10 +61,11 @@ public class GatewayConfig {
         RedisMessageListenerContainer redisMessageListenerContainer = new RedisMessageListenerContainer();
         redisMessageListenerContainer.setConnectionFactory(redisConnectionFactory);
         //添加指定的消息监听器和监听键
-        redisMessageListenerContainer.addMessageListener(refreshRouteListener, new ChannelTopic(REFRESH_ROUTE_TOPIC));
-        redisMessageListenerContainer.addMessageListener(refreshSentinelRulesListener, new ChannelTopic(REFRESH_SENTINEL_RULES_TOPIC));
+        redisMessageListenerContainer.addMessageListener(addRouteListener, new ChannelTopic(RedisConstant.ADD_ROUTES_CHANNEL));
+        redisMessageListenerContainer.addMessageListener(delRouteListener, new ChannelTopic(RedisConstant.DELETE_ROUTES_CHANNEL));
+        redisMessageListenerContainer.addMessageListener(refreshSentinelRulesListener, new ChannelTopic(RedisConstant.REFRESH_SENTINEL_CHANNEL));
         //配置自定义线程池处理消息
-//        redisMessageListenerContainer.setTaskExecutor(gatewayExecutor);
+        redisMessageListenerContainer.setTaskExecutor(gatewayExecutor);
         return  redisMessageListenerContainer;
     }
 }
