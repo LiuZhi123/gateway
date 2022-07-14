@@ -14,13 +14,15 @@ public class TestController {
     @Resource
     private RedisTemplate redisTemplate;
 
-    @RequestMapping("/testHello")
-    @SentinelResource("test")
+    @RequestMapping("/test1")
+    public String test1(){
+        redisTemplate.opsForValue().set("refreshRoute",1);
+        return "test1";
+    }
 
-
-
-    public String testMethod(){
-        redisTemplate.expire("gatewayNotify",1, TimeUnit.MILLISECONDS);
-        return "test";
+    @RequestMapping("/test2")
+    public String test2(){
+        redisTemplate.opsForValue().set("refreshSentinel",1);
+        return "test2";
     }
 }
