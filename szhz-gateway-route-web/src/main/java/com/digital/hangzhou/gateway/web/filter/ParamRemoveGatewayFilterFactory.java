@@ -23,30 +23,27 @@ import java.net.URI;
 import static org.springframework.util.CollectionUtils.unmodifiableMultiValueMap;
 
 @Order(Ordered.LOWEST_PRECEDENCE)
-//去除消费者参数过滤器
+//去除消费者参数的全局过滤器
 @Component
-public class ParamRemoveGatewayFilterFactory extends AbstractGatewayFilterFactory {
+public class ParamRemoveGatewayFilterFactory implements GlobalFilter{
+
 
     @Override
-    public GatewayFilter apply(Object config) {
-        return ((exchange, chain) -> {
-
-            ServerHttpRequest request = exchange.getRequest();
-            MultiValueMap queryParams = request.getQueryParams();
-            HttpHeaders headers = request.getHeaders();
-            if (queryParams.containsKey(RouteInfoConstant.API_KEY)){
-                queryParams.remove(RouteInfoConstant.API_KEY);
-                URI newUri = UriComponentsBuilder.fromUri(request.getURI())
-                        .replaceQueryParams(unmodifiableMultiValueMap(queryParams)).build().toUri();
-                request = exchange.getRequest().mutate().uri(newUri).build();
-                exchange = exchange.mutate().request(request).build();
-            }
-            if (headers.containsKey(RouteInfoConstant.API_KEY)){
-                request = exchange.getRequest().mutate().headers(httpHeaders -> httpHeaders.remove(RouteInfoConstant.API_KEY)).build();
-                exchange = exchange.mutate().request(request).build();
-            }
-            return chain.filter(exchange);
-
-        });
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        ServerHttpRequest request = exchange.getRequest();
+        MultiValueMap queryParams = request.getQueryParams();
+        HttpHeaders headers = request.getHeaders();
+        if (queryParams.containsKey(RouteInfoConstant.API_KEY)) {
+            queryParams.remove(RouteInfoConstant.API_KEY);
+            URI newUri = UriComponentsBuilder.fromUri(request.getURI())
+                    .replaceQueryParams(unmodifiableMultiValueMap(queryParams)).build().toUri();
+            request = exchange.getRequest().mutate().uri(newUri).build();
+            exchange = exchange.mutate().request(request).build();
+        }
+        if (headers.containsKey(RouteInfoConstant.API_KEY)) {
+            request = exchange.getRequest().mutate().headers(httpHeaders -> httpHeaders.remove(RouteInfoConstant.API_KEY)).build();
+            exchange = exchange.mutate().request(request).build();
+        }
+        return chain.filter(exchange);
     }
 }

@@ -82,8 +82,6 @@ public class RouteDefinitionUtil {
         monitor.setName(RouteInfoConstant.REMOVE_PARAM_GATEWAY_FILTER);
         FilterDefinition removeParam = new FilterDefinition();
         filterDefinitionList.add(monitor);
-        removeParam.setName(RouteInfoConstant.REMOVE_PARAM_GATEWAY_FILTER);
-        filterDefinitionList.add(removeParam);
         filterDefinitionList.add(stripPrefix);
         return filterDefinitionList;
     }
