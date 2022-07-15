@@ -12,9 +12,11 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -28,7 +30,7 @@ public class RefreshSentinelRulesListener implements MessageListener {
         log.info("监听到同步sentinel规则事件");
         //如果有多个线程同时在修改规则，每次都从redis读取了最新的配置，最终结果都会与redis保持一致
         Map<String, GatewayFlowRule> cache = redisTemplate.opsForHash().entries(RedisConstant.SENTINEL_RULES);
-        Set<GatewayFlowRule> rules = (Set<GatewayFlowRule>) cache.values();
+        Set<GatewayFlowRule> rules = cache.values().stream().collect(Collectors.toSet());
         GatewayRuleManager.loadRules(rules);
     }
 }

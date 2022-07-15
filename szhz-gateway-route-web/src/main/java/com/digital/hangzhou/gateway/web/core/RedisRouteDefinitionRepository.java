@@ -5,8 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import com.digital.hangzhou.gateway.common.constant.RedisConstant;
 import com.digital.hangzhou.gateway.web.cache.LocalCacheRepository;
 import com.digital.hangzhou.gateway.web.event.RefreshRouteEvent;
-import com.digital.hangzhou.gateway.web.util.SentinelRuleUtil;
-import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinitionRepository;
 import org.springframework.cloud.gateway.support.NotFoundException;
@@ -16,20 +15,14 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.Resource;
-import java.util.LinkedHashMap;
+
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
-import static java.util.Collections.synchronizedMap;
-
-@Data
+@Slf4j
 @Component
 public class RedisRouteDefinitionRepository implements RouteDefinitionRepository {
     @Resource
     private RedisTemplate redisTemplate;
-    @Resource
-    private RefreshRouteEvent refreshRouteEvent;
 
     @Override
     public Flux<RouteDefinition> getRouteDefinitions() {
@@ -42,10 +35,8 @@ public class RedisRouteDefinitionRepository implements RouteDefinitionRepository
             if (StrUtil.isBlank(r.getId())){
                 return Mono.error(new NotFoundException("路由数据已存在，请检查后重新提交!"));
             }
-            //todo redis写操作考虑多线程安全性问题
             redisTemplate.opsForHash().put(RedisConstant.ROUTE_KEY,r.getId(),r);
             LocalCacheRepository.ROUTE_DEFINITION_CACHE.put(r.getId(),r);
-            refreshRouteEvent.saveAndNotify(r);
             return Mono.empty();
         });
     }
@@ -55,7 +46,6 @@ public class RedisRouteDefinitionRepository implements RouteDefinitionRepository
         return routeId.flatMap(r->{
             if (StrUtil.isNotBlank(r)){
                 LocalCacheRepository.ROUTE_DEFINITION_CACHE.remove(r);
-                refreshRouteEvent.deleteAndNotify(r);
                 redisTemplate.opsForHash().delete(RedisConstant.ROUTE_KEY, r);
                 return Mono.empty();
             }
@@ -65,7 +55,7 @@ public class RedisRouteDefinitionRepository implements RouteDefinitionRepository
 
     public void saveBatch(List<RouteDefinition> routeDefinitionList){
         if(CollUtil.isNotEmpty(routeDefinitionList)){
-            refreshRouteEvent.saveBatch(routeDefinitionList);
+//            refreshRouteEvent.saveBatch(routeDefinitionList);
         }
     }
 }

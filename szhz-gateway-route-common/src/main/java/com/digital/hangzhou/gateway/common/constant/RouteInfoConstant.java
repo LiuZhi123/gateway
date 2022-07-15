@@ -21,4 +21,8 @@ public class RouteInfoConstant {
 
     public static final String ADD_REQUEST_HEADER_GATEWAY_FILTER = "AddRequestHeader";
 
+    public static final String REMOVE_PARAM_GATEWAY_FILTER = "RemoveParam";
+
+    public static final String MONITOR_GATEWAY_FILTER = "Monitor";
+
 }

@@ -1,27 +1,26 @@
 package com.digital.hangzhou.gateway.web.predicate;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.StrUtil;
 import com.digital.hangzhou.gateway.common.constant.RedisConstant;
 import com.digital.hangzhou.gateway.common.constant.RouteInfoConstant;
 import org.springframework.cloud.gateway.handler.predicate.AbstractRoutePredicateFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 
 import javax.annotation.Resource;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 
 //IP白名单断言工厂
-public class WhiteIpPredicateFactory extends AbstractRoutePredicateFactory<WhiteIpPredicateFactory.Config> {
+@Component
+public class WhiteIpRoutePredicateFactory extends AbstractRoutePredicateFactory<WhiteIpRoutePredicateFactory.Config> {
     @Resource
     private RedisTemplate redisTemplate;
 
-    public WhiteIpPredicateFactory(){
+    public WhiteIpRoutePredicateFactory(){
         super(Config.class);
     }
 

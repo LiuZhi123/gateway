@@ -13,6 +13,7 @@ import com.alibaba.csp.sentinel.adapter.gateway.sc.callback.GatewayCallbackManag
 import com.alibaba.csp.sentinel.adapter.gateway.sc.exception.SentinelGatewayBlockExceptionHandler;
 
 import com.digital.hangzhou.gateway.common.constant.RedisConstant;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.context.annotation.Bean;
@@ -32,8 +33,10 @@ import reactor.core.publisher.Mono;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.stream.Collectors;
 
 //sentinel配置类
+@Slf4j
 @Configuration
 public class SentinelConfig {
 
@@ -84,8 +87,10 @@ public class SentinelConfig {
      */
     private void initGatewayRules() {
         // 从缓存加载网关限流规则
-        Set<GatewayFlowRule> rules = redisTemplate.opsForSet().members(RedisConstant.SENTINEL_RULES);
+        Map<String, GatewayFlowRule> cache = redisTemplate.opsForHash().entries(RedisConstant.SENTINEL_RULES);
+        Set<GatewayFlowRule> rules = cache.values().stream().collect(Collectors.toSet());
         GatewayRuleManager.loadRules(rules);
+        log.info("<-------初始化加载网关限流规则 {} 条-------->", rules.size());
     }
 
     /**

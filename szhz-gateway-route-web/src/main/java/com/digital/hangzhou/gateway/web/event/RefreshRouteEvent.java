@@ -14,8 +14,6 @@ import reactor.core.publisher.Mono;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 @Slf4j
 @Component
@@ -40,7 +38,7 @@ public class RefreshRouteEvent implements ApplicationEventPublisherAware {
      */
     public void saveAndNotify(RouteDefinition definition) {
         try {
-            routeDefinitionWriter.save(Mono.just(definition)).subscribe();
+            this.routeDefinitionWriter.save(Mono.just(definition)).subscribe();
             notifyChanged();
             //发布redis通知，所有节点接收通知更新内存中的路由
             redisTemplate.convertAndSend(RedisConstant.ADD_ROUTES_CHANNEL, definition.getId());
@@ -55,7 +53,7 @@ public class RefreshRouteEvent implements ApplicationEventPublisherAware {
      */
     public void deleteAndNotify(String id) {
         try {
-            routeDefinitionWriter.delete(Mono.just(id)).subscribe();
+            this.routeDefinitionWriter.delete(Mono.just(id)).subscribe();
             notifyChanged();
             redisTemplate.convertAndSend(RedisConstant.DELETE_ROUTES_CHANNEL, id);
         } catch (Exception e) {
@@ -68,7 +66,7 @@ public class RefreshRouteEvent implements ApplicationEventPublisherAware {
      * @param routeDefinition
      */
     public void save(RouteDefinition routeDefinition){
-        routeDefinitionWriter.save(Mono.just(routeDefinition)).subscribe();
+        this.routeDefinitionWriter.save(Mono.just(routeDefinition)).subscribe();
         LocalCacheRepository.ROUTE_DEFINITION_CACHE.put(routeDefinition.getId(), routeDefinition);
         notifyChanged();
     }
@@ -77,7 +75,7 @@ public class RefreshRouteEvent implements ApplicationEventPublisherAware {
      * 删除路由并刷新
      */
     public void delete(String id) {
-        routeDefinitionWriter.delete(Mono.just(id)).subscribe();
+        this.routeDefinitionWriter.delete(Mono.just(id)).subscribe();
         LocalCacheRepository.ROUTE_DEFINITION_CACHE.remove(id);
         notifyChanged();
     }
@@ -88,7 +86,7 @@ public class RefreshRouteEvent implements ApplicationEventPublisherAware {
      *
      */
     public void saveBatch(List<RouteDefinition> routeDefinitionSet){
-        routeDefinitionSet.stream().forEach(r->routeDefinitionWriter.save(Mono.just(r)).subscribe());
+        routeDefinitionSet.stream().forEach(r->this.routeDefinitionWriter.save(Mono.just(r)).subscribe());
         notifyChanged();
         LocalCacheRepository.ROUTE_DEFINITION_CACHE.putAll(redisTemplate.opsForHash().entries(RedisConstant.ROUTE_KEY));
     }

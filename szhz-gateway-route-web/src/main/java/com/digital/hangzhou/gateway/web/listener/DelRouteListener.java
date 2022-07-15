@@ -19,9 +19,10 @@ public class DelRouteListener implements MessageListener {
     @Override
     public void onMessage(Message message, byte[] bytes) {
         log.info("监听到删除路由事件：" + message.toString());
+        String info = message.toString().substring(1, message.toString().length()-1);
         //本地缓存中存在key则删除
-        if (LocalCacheRepository.ROUTE_DEFINITION_CACHE.containsKey(message.toString())){
-            refreshRouteEvent.delete(message.toString());
+        if (LocalCacheRepository.ROUTE_DEFINITION_CACHE.containsKey(info)){
+            refreshRouteEvent.delete(info);
         }
     }
 }
