@@ -25,17 +25,17 @@ public enum ErrorMessage implements IErrorCode {
      * 通用模块
      */
     HEADER_ERROR(100100401, "请求头信息缺失"),
-    GATEWAY_CENTER_ERROR(100100402, "请求地址发生内部错误;请查看请求地址服务是否正常"),
-    GATEWAY_CENTER_NOT_FOUND(100100403, "请求的地址资源不存在;请核对请求地址是否正确或请求地址资源服务是否正常"),
-    METHOD_NOT_ALLOWED(100100404, "请求地址不支持当前Method模式"),
-    BAD_REQUEST(100100405, "请求参数异常"),
+    GATEWAY_CENTER_ERROR(500, "请求地址发生内部错误;请查看请求地址服务是否正常"),
+    GATEWAY_CENTER_NOT_FOUND(404, "请求的地址资源不存在;请核对请求地址是否正确或请求地址资源服务是否正常"),
+    METHOD_NOT_ALLOWED(405, "请求地址不支持当前Method模式"),
+    BAD_REQUEST(400, "请求错误"),
     REQUEST_URL_ILLEGAL(100100406, "请求地址不合法，网关暂不支持访问非接口编号请求地址"),
     APP_CODE_ILLEGAL(100100407, "请求地址不合法，请求地址是非法的接口编号"),
     WHITE_LIST_NOT_EXIST(100100408, "接口访问白名单不存在"),
     APP_CODE_NOT_EXIST_PATH(100100409, "接口编号未匹配到对应的请求URI"),
     API_STATUS_NOT_ON(100100410, "接口信息不存在，上架API列表未搜索到此接口"),
     APP_INFO_FIND_NOT_URL(100100411, "匹配到的接口未获取到请求的URL"),
-    GATEWAY_TIMEOUT_MESSAGE(100100412, "请求地址访问超时,请就核对请求地址是否正常"),
+    GATEWAY_TIMEOUT_MESSAGE(502, "请求地址访问超时,请就核对请求地址是否正常"),
 
     /**
      * 业务报错

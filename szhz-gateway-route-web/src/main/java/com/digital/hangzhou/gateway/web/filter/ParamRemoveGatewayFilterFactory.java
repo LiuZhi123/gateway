@@ -12,6 +12,7 @@ import org.springframework.http.HttpHeaders;
 
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -31,7 +32,7 @@ public class ParamRemoveGatewayFilterFactory implements GlobalFilter{
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
-        MultiValueMap queryParams = request.getQueryParams();
+        MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>(request.getQueryParams());
         HttpHeaders headers = request.getHeaders();
         if (queryParams.containsKey(RouteInfoConstant.API_KEY)) {
             queryParams.remove(RouteInfoConstant.API_KEY);

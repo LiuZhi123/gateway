@@ -9,6 +9,8 @@ import com.digital.hangzhou.gateway.web.exception.ErrorHandler;
 import com.digital.hangzhou.gateway.web.exception.ErrorMessage;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.cloud.gateway.route.Route;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -31,15 +33,16 @@ public class WhiteIpGatewayFilterFactory extends AbstractGatewayFilterFactory {
     @Override
     public GatewayFilter apply(Object config) {
         return ((exchange, chain) -> {
+            Route route = (Route) exchange.getAttributes().get(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
             ServerHttpResponse response = exchange.getResponse();
             String remoteIp = exchange.getRequest().getRemoteAddress().getAddress().getHostAddress();
             MultiValueMap<String, String> params = exchange.getRequest().getQueryParams();
-            List<String> appCode = params.get(RouteInfoConstant.APP_CODE);
+            List<String> appCode = params.get(RouteInfoConstant.API_KEY);
             if (CollUtil.isEmpty(appCode)){
-                appCode = exchange.getRequest().getHeaders().get(RouteInfoConstant.APP_CODE);
+                appCode = exchange.getRequest().getHeaders().get(RouteInfoConstant.API_KEY);
             }
             //todo IP白名单考虑多网卡情况
-            Set<String> whiteIpList =  (Set<String>) redisTemplate.opsForHash().get(RedisConstant.CONSUMER_KEY, appCode);
+            Set<String> whiteIpList =  (Set<String>) redisTemplate.opsForHash().get(route.getId(), appCode.get(0));
             if (null == whiteIpList || !whiteIpList.contains(remoteIp)){
                 ErrorHandler.writeFailedToResponse(response, ErrorMessage.HTTP_ERROR_403);
             }

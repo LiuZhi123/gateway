@@ -117,15 +117,15 @@
             <properties>
                 <env-profile>dev</env-profile>
             </properties>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
         </profile>
         <profile>
             <id>test</id>
             <properties>
                 <env-profile>test</env-profile>
             </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
         </profile>
         <profile>
             <id>uat</id>

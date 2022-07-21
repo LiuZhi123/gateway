@@ -1,15 +1,13 @@
 spring:
+  profiles:
+    active: @env-profile@
+  application:
+    name: szhz-gateway-route
   main:
     allow-bean-definition-overriding: true
-  application:
-    name: szhz-api-gateway
 
-  redis:
-    host: 172.18.34.61
-    database: 0
-    port: 8083
-    timeout: 6000
-    password: szhz123456
+
+
 
 #  cloud:
 #    sentinel:
@@ -84,5 +82,4 @@ server:
   port: 8082
 
 
-platform:
-  gateway-base-url: http://localhost:8085/szhz-gateway-api
+
