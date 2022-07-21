@@ -24,40 +24,59 @@ public class RouteDefinitionUtil {
     @SneakyThrows
     public static RouteDefinition getApiRouteDefinition(ReleaseRequest request){
         RouteDefinition routeDefinition = new RouteDefinition();
-        //API的转发路径为API的全路径
-        String url = request.getServiceProtocol().name() + CharPool.COLON + CharPool.SLASH + CharPool.SLASH
-                + request.getServiceAddress() + CharPool.COLON + request.getServicePort() + request.getFullPath();
         //ID为API编号
         routeDefinition.setId(request.getApiCode());
-        routeDefinition.setUri(new URI(url));
+        routeDefinition.setUri(new URI(request.getFullPath()));
         //元数据存储API所属部门，用于监控数据统计
         Map<String,Object> meta = new HashMap<>(1);
         meta.put(RouteInfoConstant.ORG_CODE, request.getMainOrgCode());
         routeDefinition.setMetadata(meta);
         //断言工厂
-        routeDefinition.setPredicates(getPredicateList(request));
+        routeDefinition.setPredicates(getPredicateList(request.getApiCode()));
         //过滤器链
         routeDefinition.setFilters(getFilterDefinition(request));
         return  routeDefinition;
     }
 
+    @SneakyThrows
+    public static RouteDefinition getHtmlRouteDefinition(ReleaseRequest request){
+        RouteDefinition routeDefinition = new RouteDefinition();
+        routeDefinition.setId(request.getHtmlInstanceCode());
+        routeDefinition.setUri(new URI(request.getFullPath()));
+        //元数据存储API所属部门，用于监控数据统计
+        Map<String,Object> meta = new HashMap<>(1);
+        meta.put(RouteInfoConstant.ORG_CODE, request.getMainOrgCode());
+        routeDefinition.setMetadata(meta);
+        routeDefinition.setPredicates(getPredicateList(request.getHtmlInstanceCode()));
+        routeDefinition.setFilters(getFilterDefinition(request));
+        return routeDefinition;
+    }
 
-    public static List<PredicateDefinition> getPredicateList(ReleaseRequest request){
+    @SneakyThrows
+    public static RouteDefinition getJsRouteDefinition(ReleaseRequest request){
+        RouteDefinition routeDefinition = new RouteDefinition();
+        routeDefinition.setId(request.getHtmlPredicatePath());
+        routeDefinition.setUri(new URI(request.getFullPath()));
+        routeDefinition.setPredicates(getPredicateList(request.getPredicatePath()));
+        List<FilterDefinition> filterDefinitions = new ArrayList<>(1);
+        filterDefinitions.add(getStripPrefixFilterDefinition());
+        routeDefinition.setFilters(filterDefinitions);
+        return routeDefinition;
+    }
+
+
+    public static List<PredicateDefinition> getPredicateList(String predicatePath){
+
         List<PredicateDefinition> predicateDefinitions = new ArrayList<>();
         PredicateDefinition path = new PredicateDefinition();
         path.setName(RouteInfoConstant.PATH_PREDICATE_FACTORY);
-        path.addArg("patterns", CharPool.SLASH + request.getApiCode() + CharPool.SLASH + "**");
+        if (predicatePath.startsWith(String.valueOf(CharPool.SLASH))){
+            path.addArg("patterns", predicatePath + CharPool.SLASH + "**");
+        }else {
+            path.addArg("patterns", CharPool.SLASH + predicatePath + CharPool.SLASH + "**");
+        }
+
         predicateDefinitions.add(path);
-        if (!request.getAuthType().equals(ApiAuthType.PUBLIC)){
-            PredicateDefinition consumer = new PredicateDefinition(getConsumerRouteDefinition(request.getConsumerList()).toString());
-            predicateDefinitions.add(consumer);
-        }
-        if (request.getAuthType().equals(ApiAuthType.AUTHOR)){
-            //白名单断言工厂
-            PredicateDefinition whiteIpList = new PredicateDefinition();
-            whiteIpList.setName(RouteInfoConstant.WHITE_IP_PREDICATE_FACTORY);
-            predicateDefinitions.add(whiteIpList);
-        }
         return predicateDefinitions;
     }
 
@@ -65,39 +84,55 @@ public class RouteDefinitionUtil {
     public static List<FilterDefinition> getFilterDefinition(ReleaseRequest request){
         List<FilterDefinition> filterDefinitionList = new ArrayList<>();
         //去除url中的参数过滤器，即系统中自定义的ApiCode
-        FilterDefinition stripPrefix = new FilterDefinition();
-        stripPrefix.setName(RouteInfoConstant.STRIP_PREFIX_GATEWAY_FILTER);
-        stripPrefix.addArg("parts","1");
+        filterDefinitionList.add(getStripPrefixFilterDefinition());
+        FilterDefinition monitor = new FilterDefinition();
+        monitor.setName(RouteInfoConstant.MONITOR_GATEWAY_FILTER);
+        filterDefinitionList.add(monitor);
+        if (!request.getAuthType().equals(ApiAuthType.PUBLIC)){
+            //消费者过滤器
+            FilterDefinition consumer = new FilterDefinition();
+            consumer.setName(RouteInfoConstant.CONSUMER_PREDICATE_FACTORY);
+            consumer.addArg("sources", getConsumer(request.getAppCodes()).toString());
+            filterDefinitionList.add(consumer);
+        }
+        if (request.getAuthType().equals(ApiAuthType.AUTHOR)){
+            //白名单过滤器
+            FilterDefinition whiteIp = new FilterDefinition();
+            whiteIp.setName(RouteInfoConstant.WHITE_IP_PREDICATE_FACTORY);
+            filterDefinitionList.add(whiteIp);
+        }
         //如果有配置鉴权模板，那么在转发下游之前增加请求头参数
-        if (CollUtil.isNotEmpty(request.getAuthTemplate())){
-            Set<String> keys = request.getAuthTemplate().keySet();
+        if (CollUtil.isNotEmpty(request.getAuthConfig())){
+            Set<String> keys = request.getAuthConfig().keySet();
             for (String  key : keys){
                 FilterDefinition addRequestHeader = new FilterDefinition();
                 addRequestHeader.setName(RouteInfoConstant.ADD_REQUEST_HEADER_GATEWAY_FILTER);
-                addRequestHeader.setArgs(request.getAuthTemplate());
+                addRequestHeader.setArgs(request.getAuthConfig());
             }
         }
-        //增加监控过滤器和去除消费者参数过滤器
-        FilterDefinition monitor = new FilterDefinition();
-        monitor.setName(RouteInfoConstant.REMOVE_PARAM_GATEWAY_FILTER);
-        FilterDefinition removeParam = new FilterDefinition();
-        filterDefinitionList.add(monitor);
-        filterDefinitionList.add(stripPrefix);
         return filterDefinitionList;
     }
 
     /**
      * 组装获取消费者断言对象
      */
-    public static StringBuffer getConsumerRouteDefinition(List<String> consumerList){
-        StringBuffer buffer = new StringBuffer(RouteInfoConstant.CONSUMER_PREDICATE_FACTORY).append("=");
+    public static StringBuffer getConsumer(Set<String> consumerList){
+        StringBuffer buffer = new StringBuffer();
         if (CollUtil.isNotEmpty(consumerList)){
             consumerList.stream().forEach(e->buffer.append(e + CharPool.COMMA));
-        }
-        else {
-            buffer.append("null");
+            buffer.deleteCharAt(buffer.length()-1);
         }
         log.info(buffer.toString());
         return buffer;
+    }
+
+    /**
+     * 单独获取去前缀的过滤器定义
+     */
+    public static FilterDefinition getStripPrefixFilterDefinition(){
+        FilterDefinition stripPrefix = new FilterDefinition();
+        stripPrefix.setName(RouteInfoConstant.STRIP_PREFIX_GATEWAY_FILTER);
+        stripPrefix.addArg("parts","1");
+        return stripPrefix;
     }
 }

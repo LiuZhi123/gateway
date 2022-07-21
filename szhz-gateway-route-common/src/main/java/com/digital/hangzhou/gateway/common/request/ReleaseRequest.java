@@ -11,6 +11,7 @@ import lombok.experimental.Accessors;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author: liuzhi
@@ -42,7 +43,7 @@ public class ReleaseRequest {
     private List<String> filterList;
 
     /**
-     * 安全控制：PUBLIC--公开；DISABLE--需授权(ak校验)；AUTHOR--ak校验+IP白名单校验
+     * 安全控制：PUBLIC--公开；DISABLE--需授权
      */
     private ApiAuthType authType;
 
@@ -64,16 +65,19 @@ public class ReleaseRequest {
     /**
      * 传输协议
      */
+//	@NotNull(message = "传输协议不能为空")
     private ProtocolEnum serviceProtocol;
 
     /**
      * 上架分组/API服务地址
      */
+//	@NotBlank(message = "上架分组/API服务地址不能为空")
     private String serviceAddress;
 
     /**
      *  上架分组/API服务端口
      */
+//	@NotNull(message = "上架分组/API服务端口不能为空")
     private Integer servicePort;
 
     /**
@@ -97,10 +101,9 @@ public class ReleaseRequest {
     private String config;
 
     /**
-     * 消费者白名单
+     * 应用白名单
      */
-    private List<String> consumerList;
-
+    private Set<String> appCodes;
 
     /**
      *部门编号，用于基于部门维度统计数据
@@ -108,7 +111,8 @@ public class ReleaseRequest {
     private String mainOrgCode;
 
     /**
-     * 鉴权模板信息
+     * 鉴权模板配置
      */
-    private Map<String,String> authTemplate;
+    private Map<String ,String> authConfig;
+
 }

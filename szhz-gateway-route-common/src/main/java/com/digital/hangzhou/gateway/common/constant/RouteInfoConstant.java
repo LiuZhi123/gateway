@@ -2,9 +2,7 @@ package com.digital.hangzhou.gateway.common.constant;
 
 public class RouteInfoConstant {
 
-    public static final String ORG_CODE = "OrgCode";
 
-    public static final String APP_CODE = "AppCode";
 
     public static final String API_KEY = "apiKey";
 
@@ -21,8 +19,22 @@ public class RouteInfoConstant {
 
     public static final String ADD_REQUEST_HEADER_GATEWAY_FILTER = "AddRequestHeader";
 
-    public static final String REMOVE_PARAM_GATEWAY_FILTER = "RemoveParam";
 
     public static final String MONITOR_GATEWAY_FILTER = "Monitor";
+
+    /**
+     * 路由监控指标
+     */
+    public static final String ORG_CODE = "orgCode";
+
+    public static final String APP_CODE = "appCode";
+
+    public static final String REMOTE_IP = "remoteIp";
+
+    public static final String REMOTE_HOST = "remoteHost";
+
+    public static final String RESPONSE_STATUS = "status";
+
+    public static final String ROUTE_ID  = "routeId";
 
 }

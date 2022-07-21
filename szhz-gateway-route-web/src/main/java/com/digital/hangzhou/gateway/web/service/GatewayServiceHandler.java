@@ -1,34 +1,39 @@
 package com.digital.hangzhou.gateway.web.service;
 
 import cn.hutool.core.collection.CollUtil;
+import com.custom.starters.customwebspringbootstarters.util.Assert;
 import com.digital.hangzhou.gateway.common.constant.RedisConstant;
+import com.digital.hangzhou.gateway.common.constant.RouteInfoConstant;
+import com.digital.hangzhou.gateway.common.enums.ReleaseStatusEnum;
+import com.digital.hangzhou.gateway.common.request.ReleaseAuthRequest;
 import com.digital.hangzhou.gateway.common.request.ReleaseRequest;
-import com.digital.hangzhou.gateway.web.core.RedisRouteDefinitionRepository;
+import com.digital.hangzhou.gateway.web.cache.LocalCacheRepository;
+import com.digital.hangzhou.gateway.web.core.ApiRouteOperate;
 import com.digital.hangzhou.gateway.web.event.RefreshRouteEvent;
+import com.digital.hangzhou.gateway.web.exception.ErrorMessage;
 import com.digital.hangzhou.gateway.web.util.RouteDefinitionUtil;
 import com.digital.hangzhou.gateway.web.util.SentinelRuleUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 public class GatewayServiceHandler implements CommandLineRunner {
-
     @Resource
     private RefreshRouteEvent refreshRouteEvent;
-
     @Resource
     private RedisTemplate redisTemplate;
-
     @Resource
-    private SentinelRuleUtil sentinelRuleUtil;
+    private ApiRouteOperate apiRouteOperate;
 
     //容器启动后从缓存中加载路由信息
     @Override
@@ -40,21 +45,24 @@ public class GatewayServiceHandler implements CommandLineRunner {
         log.info("<------------初始化路由信息加载完毕------------------>");
     }
 
-    /**
-     * 根据请求生成动态路由并加载至内存，发送事件通知所有节点刷新路由
-     * @param request
-     */
-    public void save(ReleaseRequest request){
-        //根据Api编号查询路由的消费者信息以及IP白名单信息模板信息以及限流信息生成对应的routeDefinition对象
-        RouteDefinition routeDefinition = RouteDefinitionUtil.getApiRouteDefinition(request);
-        //保存路由信息至内存
-        refreshRouteEvent.saveAndNotify(routeDefinition);
-        sentinelRuleUtil.addGatewaySentinelRule(request.getApiCode(), request.getConfig());
+
+    public void refresh(ReleaseAuthRequest request){
+        List<RouteDefinition> routeDefinitionList = getRouteByIds(CollUtil.toList(request.getApiInstanceCode()));
+        Assert.isTrue(CollUtil.isEmpty(routeDefinitionList), ErrorMessage.ROUTE_NOT_FOUNT);
+        RouteDefinition exist = routeDefinitionList.get(0);
+        refreshRouteEvent.deleteAndNotify(request.getApiInstanceCode());
+        List<FilterDefinition> filters = exist.getFilters().stream().filter(e->e.getName().equals(RouteInfoConstant.CONSUMER_PREDICATE_FACTORY)).collect(Collectors.toList());
+        //配置新的消费者过滤器
+        FilterDefinition consumer = new FilterDefinition();
+        consumer.setName(RouteInfoConstant.CONSUMER_PREDICATE_FACTORY);
+        consumer.addArg("sources" , RouteDefinitionUtil.getConsumer(request.getAppCodes()).toString());
+        filters.add(consumer);
+        exist.setFilters(filters);
+        refreshRouteEvent.saveAndNotify(exist);
     }
 
-    public void delete(String routeId){
-        //根据路由ID删除路由
-        refreshRouteEvent.deleteAndNotify(routeId);
-        sentinelRuleUtil.delGatewaySentinelRule(routeId);
+    public List<RouteDefinition> getRouteByIds(List<String> ids){
+        List<RouteDefinition> routeDefinitionList = redisTemplate.opsForHash().multiGet(RedisConstant.ROUTE_KEY, ids);
+        return routeDefinitionList == null ? new ArrayList<>(0) : routeDefinitionList;
     }
 }

@@ -67,7 +67,6 @@ public class RefreshRouteEvent implements ApplicationEventPublisherAware {
      */
     public void save(RouteDefinition routeDefinition){
         this.routeDefinitionWriter.save(Mono.just(routeDefinition)).subscribe();
-        LocalCacheRepository.ROUTE_DEFINITION_CACHE.put(routeDefinition.getId(), routeDefinition);
         notifyChanged();
     }
 
@@ -76,10 +75,8 @@ public class RefreshRouteEvent implements ApplicationEventPublisherAware {
      */
     public void delete(String id) {
         this.routeDefinitionWriter.delete(Mono.just(id)).subscribe();
-        LocalCacheRepository.ROUTE_DEFINITION_CACHE.remove(id);
         notifyChanged();
     }
-
 
     /**
      * 批量增加路由

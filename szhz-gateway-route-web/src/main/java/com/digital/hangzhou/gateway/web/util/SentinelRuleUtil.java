@@ -1,6 +1,7 @@
 package com.digital.hangzhou.gateway.web.util;
 
 
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.csp.sentinel.adapter.gateway.common.rule.GatewayFlowRule;
 import com.alibaba.fastjson.JSONObject;
 import com.digital.hangzhou.gateway.common.constant.ApiConstant;
@@ -17,6 +18,9 @@ public class SentinelRuleUtil{
 
     //根据配置生成限流规则加载到sentinel
     public void addGatewaySentinelRule(String id,String config){
+        if (StrUtil.isBlank(id) || StrUtil.isBlank(config)){
+            return;
+        }
         //每次更新网关规则时需要是不同的Set对象，loadRules内部会判断
         GatewayFlowRule flowRule = new GatewayFlowRule();
         flowRule.setResource(id);

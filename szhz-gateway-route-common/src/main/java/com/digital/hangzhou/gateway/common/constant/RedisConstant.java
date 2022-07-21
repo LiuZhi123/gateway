@@ -11,6 +11,5 @@ public class RedisConstant {
 
     public static final String DELETE_ROUTES_CHANNEL = "delRoutes";
 
-
     public static final String REFRESH_SENTINEL_CHANNEL = "refreshSentinel";
 }
