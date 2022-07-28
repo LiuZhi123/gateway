@@ -12,7 +12,9 @@
 
 
     <artifactId>szhz-gateway-route-common</artifactId>
-
+    <version>0.0.1</version>
+    <name>szhz-gateway-route-common</name>
+    <description>通用公开类及domain模块</description>
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
@@ -22,6 +24,10 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.xiaoymin</groupId>
+            <artifactId>knife4j-spring-boot-starter</artifactId>
         </dependency>
     </dependencies>
 

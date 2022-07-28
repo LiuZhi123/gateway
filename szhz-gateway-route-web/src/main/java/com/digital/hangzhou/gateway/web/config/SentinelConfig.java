@@ -12,6 +12,7 @@ import com.alibaba.csp.sentinel.adapter.gateway.sc.callback.BlockRequestHandler;
 import com.alibaba.csp.sentinel.adapter.gateway.sc.callback.GatewayCallbackManager;
 import com.alibaba.csp.sentinel.adapter.gateway.sc.exception.SentinelGatewayBlockExceptionHandler;
 
+import com.alibaba.csp.sentinel.slots.system.SystemRule;
 import com.digital.hangzhou.gateway.common.constant.RedisConstant;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
@@ -72,7 +73,6 @@ public class SentinelConfig {
     }
 
 
-
     @PostConstruct
     public void doInit(){
         // 加载网关限流规则
@@ -87,10 +87,13 @@ public class SentinelConfig {
      */
     private void initGatewayRules() {
         // 从缓存加载网关限流规则
-        Map<String, GatewayFlowRule> cache = redisTemplate.opsForHash().entries(RedisConstant.SENTINEL_RULES);
-        Set<GatewayFlowRule> rules = cache.values().stream().collect(Collectors.toSet());
+        Map<String, GatewayFlowRule> gatewayRuleCache = redisTemplate.opsForHash().entries(RedisConstant.SENTINEL_RULES);
+        Set<GatewayFlowRule> rules = gatewayRuleCache.values().stream().collect(Collectors.toSet());
         GatewayRuleManager.loadRules(rules);
-        log.info("<-------初始化加载网关限流规则 {} 条-------->", rules.size());
+        Object o = redisTemplate.opsForValue().get(RedisConstant.SYSTEM_RULES);
+        // 加载系统限流规则
+        List<SystemRule> systemRuleCache = null == o ? new ArrayList<>(0) : (List<SystemRule>) o;
+        log.info("<-------初始化加载网关限流规则 {} 条-------->", rules.size() + systemRuleCache.size());
     }
 
     /**

@@ -2,6 +2,8 @@ package com.digital.hangzhou.gateway.web.util;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharPool;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.util.URLUtil;
 import com.digital.hangzhou.gateway.common.constant.RedisConstant;
 import com.digital.hangzhou.gateway.common.constant.RouteInfoConstant;
 import com.digital.hangzhou.gateway.common.enums.ApiAuthType;
@@ -34,7 +36,9 @@ public class RouteDefinitionUtil {
         //断言工厂
         routeDefinition.setPredicates(getPredicateList(request.getApiCode()));
         //过滤器链
-        routeDefinition.setFilters(getFilterDefinition(request));
+        List<FilterDefinition> filterDefinitions =  getCommonFilterList(request);
+        filterDefinitions.add(getApiRewritePathFilter(request.getApiCode(), request.getPredicatePath()));
+        routeDefinition.setFilters(filterDefinitions);
         return  routeDefinition;
     }
 
@@ -42,13 +46,18 @@ public class RouteDefinitionUtil {
     public static RouteDefinition getHtmlRouteDefinition(ReleaseRequest request){
         RouteDefinition routeDefinition = new RouteDefinition();
         routeDefinition.setId(request.getHtmlInstanceCode());
-        routeDefinition.setUri(new URI(request.getFullPath()));
+        URI uri = new URI(request.getFullPath());
+        String routeUri = new StringBuilder().append(uri.getScheme()).append(CharPool.COLON).append(CharPool.SLASH)
+                .append(CharPool.SLASH).append(uri.getHost()).append(CharPool.COLON).append(uri.getPort()).toString();
+        routeDefinition.setUri(new URI(routeUri));
         //元数据存储API所属部门，用于监控数据统计
         Map<String,Object> meta = new HashMap<>(1);
         meta.put(RouteInfoConstant.ORG_CODE, request.getMainOrgCode());
         routeDefinition.setMetadata(meta);
         routeDefinition.setPredicates(getPredicateList(request.getHtmlInstanceCode()));
-        routeDefinition.setFilters(getFilterDefinition(request));
+        List<FilterDefinition> filterDefinitions =  getCommonFilterList(request);
+        filterDefinitions.add(getHtmlStripPrefixFilterDefinition());
+        routeDefinition.setFilters(filterDefinitions);
         return routeDefinition;
     }
 
@@ -56,11 +65,14 @@ public class RouteDefinitionUtil {
     public static RouteDefinition getJsRouteDefinition(ReleaseRequest request){
         RouteDefinition routeDefinition = new RouteDefinition();
         routeDefinition.setId(request.getHtmlPredicatePath());
-        routeDefinition.setUri(new URI(request.getFullPath()));
-        routeDefinition.setPredicates(getPredicateList(request.getPredicatePath()));
+        URI uri = new URI(request.getFullPath());
+        String routeUri = new StringBuilder().append(uri.getScheme()).append(CharPool.COLON).append(CharPool.SLASH)
+                .append(CharPool.SLASH).append(uri.getHost()).append(CharPool.COLON).append(uri.getPort()).toString();
+        routeDefinition.setUri(new URI(routeUri));
+        routeDefinition.setPredicates(getPredicateList(request.getHtmlPredicatePath()));
         List<FilterDefinition> filterDefinitions = new ArrayList<>(1);
-        filterDefinitions.add(getStripPrefixFilterDefinition());
-        routeDefinition.setFilters(filterDefinitions);
+        filterDefinitions.add(getHtmlStripPrefixFilterDefinition());
+//        routeDefinition.setFilters(filterDefinitions);
         return routeDefinition;
     }
 
@@ -81,10 +93,56 @@ public class RouteDefinitionUtil {
     }
 
 
-    public static List<FilterDefinition> getFilterDefinition(ReleaseRequest request){
+
+    /**
+     * 路径重写过滤器（API路由使用）
+     * @param apiCode api编号
+     * @param apiPath api请求路径
+     * @return
+     */
+    public static FilterDefinition getApiRewritePathFilter(String apiCode, String apiPath){
+        FilterDefinition rewrite = new FilterDefinition();
+        rewrite.setName(RouteInfoConstant.REWRITE_PATH_GATEWAY_FILTER);
+        String regexp = "/" + apiCode;
+        if (apiPath.startsWith("/")){
+            rewrite.addArg("replacement", apiPath);
+        }
+        else {
+            rewrite.addArg("replacement", "/" + apiPath);
+        }
+        rewrite.addArg("regexp", regexp);
+        return rewrite;
+    }
+
+
+    /**
+     * 组装获取消费者断言对象
+     */
+    public static StringBuffer getConsumer(Set<String> consumerList){
+        StringBuffer buffer = new StringBuffer();
+        if (CollUtil.isNotEmpty(consumerList)){
+            consumerList.stream().forEach(e->buffer.append(e + CharPool.COMMA));
+            buffer.deleteCharAt(buffer.length()-1);
+        }
+        log.info(buffer.toString());
+        return buffer;
+    }
+
+    /**
+     * 获取去前缀的过滤器(界面路由及js路由使用)
+     */
+    public static FilterDefinition getHtmlStripPrefixFilterDefinition(){
+        FilterDefinition stripPrefix = new FilterDefinition();
+        stripPrefix.setName(RouteInfoConstant.STRIP_PREFIX_GATEWAY_FILTER);
+        stripPrefix.addArg("parts","1");
+        return stripPrefix;
+    }
+
+    /**
+     *路由通用过滤器链组装  包含监控插件，消费者白名单，鉴权模板插件
+     */
+    public static List<FilterDefinition> getCommonFilterList(ReleaseRequest request){
         List<FilterDefinition> filterDefinitionList = new ArrayList<>();
-        //去除url中的参数过滤器，即系统中自定义的ApiCode
-        filterDefinitionList.add(getStripPrefixFilterDefinition());
         FilterDefinition monitor = new FilterDefinition();
         monitor.setName(RouteInfoConstant.MONITOR_GATEWAY_FILTER);
         filterDefinitionList.add(monitor);
@@ -111,28 +169,5 @@ public class RouteDefinitionUtil {
             }
         }
         return filterDefinitionList;
-    }
-
-    /**
-     * 组装获取消费者断言对象
-     */
-    public static StringBuffer getConsumer(Set<String> consumerList){
-        StringBuffer buffer = new StringBuffer();
-        if (CollUtil.isNotEmpty(consumerList)){
-            consumerList.stream().forEach(e->buffer.append(e + CharPool.COMMA));
-            buffer.deleteCharAt(buffer.length()-1);
-        }
-        log.info(buffer.toString());
-        return buffer;
-    }
-
-    /**
-     * 单独获取去前缀的过滤器定义
-     */
-    public static FilterDefinition getStripPrefixFilterDefinition(){
-        FilterDefinition stripPrefix = new FilterDefinition();
-        stripPrefix.setName(RouteInfoConstant.STRIP_PREFIX_GATEWAY_FILTER);
-        stripPrefix.addArg("parts","1");
-        return stripPrefix;
     }
 }

@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @EnableExceptionHandler
 @SpringBootApplication(scanBasePackages = "com.digital.hangzhou.gateway")
-@RetrofitScan(basePackages = {"com.digital.hangzhou.gateway.web"})
+@RetrofitScan(basePackages = {"com.digital.hangzhou.gateway.client"})
 public class GatewayApplication {
     public static void main(String[] args) {
 

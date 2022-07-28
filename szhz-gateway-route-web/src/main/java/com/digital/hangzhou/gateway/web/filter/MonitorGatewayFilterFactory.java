@@ -1,15 +1,16 @@
 package com.digital.hangzhou.gateway.web.filter;
 
 import cn.hutool.core.collection.CollUtil;
+import com.digital.hangzhou.gateway.client.MetricCollectClient;
 import com.digital.hangzhou.gateway.common.constant.RouteInfoConstant;
 import com.digital.hangzhou.gateway.common.request.RecordRequest;
-import com.digital.hangzhou.gateway.web.client.MetricCollectClient;
 import com.digital.hangzhou.gateway.web.util.CustomizeMetric;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
+import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -25,7 +26,7 @@ import javax.annotation.Resource;
 import java.util.List;
 
 @Slf4j
-@Order(1)
+@Order(Ordered.HIGHEST_PRECEDENCE)
 //网关转发监控日志记录
 @Component
 public class MonitorGatewayFilterFactory extends AbstractGatewayFilterFactory {
@@ -43,15 +44,17 @@ public class MonitorGatewayFilterFactory extends AbstractGatewayFilterFactory {
             if (CollUtil.isEmpty(appCodeList)){
                 appCodeList = exchange.getRequest().getHeaders().get(RouteInfoConstant.API_KEY);
             }
-            String appCode = null == appCodeList.get(0) ? null : appCodeList.get(0);
+            String appCode = null == appCodeList || CollUtil.isEmpty(appCodeList) ? "" : appCodeList.get(0);
             String routeId = route.getId();
             String remoteIp = request.getRemoteAddress().getAddress().getHostAddress();
             String remoteHost = request.getRemoteAddress().getHostName();
+            CustomizeMetric.getInstance().getBandWidthCounter().labels("ingress", routeId, appCode, orgCode, remoteIp, remoteHost).inc();
             return chain.filter(exchange).then(
                     Mono.fromRunnable(()->{
                         ServerHttpResponse response = exchange.getResponse();
                         Integer status = response.getStatusCode().value();
-                        CustomizeMetric.getInstance().counter().labels(orgCode, appCode, remoteIp, remoteHost, routeId, status.toString()).inc();
+                        CustomizeMetric.getInstance().getRouteCounter().labels(appCode, orgCode, remoteIp, remoteHost, routeId, status.toString()).inc();
+                        CustomizeMetric.getInstance().getBandWidthCounter().labels("egress", routeId, appCode, orgCode, remoteIp, remoteHost).inc();
                         //异步落库
                         Call<Void> call = metricCollectClient.record(new RecordRequest(appCode, orgCode, remoteIp, remoteHost, status.toString(), routeId));
                         call.enqueue(new Callback<Void>() {

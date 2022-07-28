@@ -1,10 +1,13 @@
 spring:
   redis:
-    host: 172.18.34.61
+#    host: 172.18.34.61
+    host: 43.142.23.7
     database: 0
-    port: 8083
+    port: 6379
+#    port: 8083
     timeout: 6000
-    password: szhz123456
+#    password: szhz123456
 
 platform:
+#  gateway-base-url: http://172.18.34.61:9010/szhz-gateway-api
   gateway-base-url: http://localhost:8085/szhz-gateway-api

@@ -1,13 +1,18 @@
 package com.digital.hangzhou.gateway.common.request;
 
+import com.digital.hangzhou.gateway.common.constant.CommonConstant;
 import com.digital.hangzhou.gateway.common.enums.ApiAuthType;
 import com.digital.hangzhou.gateway.common.enums.ProtocolEnum;
 import com.digital.hangzhou.gateway.common.enums.ReleaseStatusEnum;
 
+import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
 import lombok.experimental.Accessors;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,12 +24,14 @@ import java.util.Set;
  * @description: 上下架请求类
  */
 @Accessors(chain = true)
+@ApiModel(value = "ReleaseRequest", description = "生成路由请求类")
 @Data
 public class ReleaseRequest {
 
     /**
      * API 编号
      */
+    @Size(max = 32, message = "接口编码" + CommonConstant.ERROR_LENTH_MESSAGE + 32)
     String apiCode;
 
     /**
@@ -35,6 +42,7 @@ public class ReleaseRequest {
     /**
      * 界面实例编码
      */
+    @Size(max = 32, message = "界面编码" + CommonConstant.ERROR_LENTH_MESSAGE + 32)
     private String htmlInstanceCode;
 
     /**
@@ -45,11 +53,13 @@ public class ReleaseRequest {
     /**
      * 安全控制：PUBLIC--公开；DISABLE--需授权
      */
+    @NotNull(message = "安全控制类型" + CommonConstant.ERROR_BLANK_MESSAGE)
     private ApiAuthType authType;
 
     /**
      * 分组/API名称
      */
+    @NotBlank(message = "API名称" + CommonConstant.ERROR_BLANK_MESSAGE)
     private String name;
 
     /**
@@ -60,6 +70,7 @@ public class ReleaseRequest {
     /**
      * 上架状态：ONLINE-上架；OFFLINE-下架
      */
+    @NotNull(message = "上架状态" + CommonConstant.ERROR_BLANK_MESSAGE)
     private ReleaseStatusEnum releaseStatus;
 
     /**

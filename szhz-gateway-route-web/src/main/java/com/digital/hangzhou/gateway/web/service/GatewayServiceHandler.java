@@ -1,14 +1,12 @@
 package com.digital.hangzhou.gateway.web.service;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.map.MapUtil;
 import com.custom.starters.customwebspringbootstarters.util.Assert;
 import com.digital.hangzhou.gateway.common.constant.RedisConstant;
 import com.digital.hangzhou.gateway.common.constant.RouteInfoConstant;
-import com.digital.hangzhou.gateway.common.enums.ReleaseStatusEnum;
+import com.digital.hangzhou.gateway.common.request.GlobalRuleRequest;
 import com.digital.hangzhou.gateway.common.request.ReleaseAuthRequest;
-import com.digital.hangzhou.gateway.common.request.ReleaseRequest;
-import com.digital.hangzhou.gateway.web.cache.LocalCacheRepository;
-import com.digital.hangzhou.gateway.web.core.ApiRouteOperate;
 import com.digital.hangzhou.gateway.web.event.RefreshRouteEvent;
 import com.digital.hangzhou.gateway.web.exception.ErrorMessage;
 import com.digital.hangzhou.gateway.web.util.RouteDefinitionUtil;
@@ -33,7 +31,7 @@ public class GatewayServiceHandler implements CommandLineRunner {
     @Resource
     private RedisTemplate redisTemplate;
     @Resource
-    private ApiRouteOperate apiRouteOperate;
+    private SentinelRuleUtil sentinelRuleUtil;
 
     //容器启动后从缓存中加载路由信息
     @Override
@@ -64,5 +62,9 @@ public class GatewayServiceHandler implements CommandLineRunner {
     public List<RouteDefinition> getRouteByIds(List<String> ids){
         List<RouteDefinition> routeDefinitionList = redisTemplate.opsForHash().multiGet(RedisConstant.ROUTE_KEY, ids);
         return routeDefinitionList == null ? new ArrayList<>(0) : routeDefinitionList;
+    }
+
+    public void saveSystemRules(GlobalRuleRequest globalRuleRequest){
+        sentinelRuleUtil.systemRules(globalRuleRequest.getLimitStatus(), Double.valueOf(globalRuleRequest.getLimitRate()));
     }
 }

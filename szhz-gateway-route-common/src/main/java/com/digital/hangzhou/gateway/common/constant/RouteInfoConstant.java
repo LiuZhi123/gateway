@@ -19,8 +19,9 @@ public class RouteInfoConstant {
 
     public static final String ADD_REQUEST_HEADER_GATEWAY_FILTER = "AddRequestHeader";
 
-
     public static final String MONITOR_GATEWAY_FILTER = "Monitor";
+
+    public static final String REWRITE_PATH_GATEWAY_FILTER = "RewritePath";
 
     /**
      * 路由监控指标
@@ -36,5 +37,12 @@ public class RouteInfoConstant {
     public static final String RESPONSE_STATUS = "status";
 
     public static final String ROUTE_ID  = "routeId";
+
+    /**
+     * 流量统计指标
+     */
+    public static final String BANDWIDTH_TYPE = "type";
+
+    public static final String BANDWIDTH_PATH = "path";
 
 }

@@ -14,9 +14,13 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class CustomizeMetric implements ApplicationContextAware {
+
     private static CustomizeMetric instance;
-    //Count类型记录器
+    //路由访问数量的Count类型记录器
     private Counter routeCounter;
+    //网关流量记录器
+    private Counter bandWidthCounter;
+
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -26,10 +30,20 @@ public class CustomizeMetric implements ApplicationContextAware {
                         RouteInfoConstant.ORG_CODE, RouteInfoConstant.REMOTE_IP, RouteInfoConstant.REMOTE_HOST,
                         RouteInfoConstant.ROUTE_ID, RouteInfoConstant.RESPONSE_STATUS)
                 .register(collectorRegistry);
+
+        bandWidthCounter = Counter.build().name("route_bandwidth").help("网关流量统计").labelNames(RouteInfoConstant.BANDWIDTH_TYPE,
+                        RouteInfoConstant.ROUTE_ID, RouteInfoConstant.APP_CODE, RouteInfoConstant.ORG_CODE, RouteInfoConstant.REMOTE_IP,
+                        RouteInfoConstant.REMOTE_HOST)
+                .register(collectorRegistry);
+
     }
 
-    public Counter counter(){
+    public Counter getRouteCounter(){
         return routeCounter;
+    }
+
+    public Counter getBandWidthCounter(){
+        return bandWidthCounter;
     }
 
     public static CustomizeMetric getInstance(){
