@@ -1,13 +1,22 @@
 spring:
   redis:
 #    host: 172.18.34.61
-    host: 43.142.23.7
+    host: 172.18.111.185
     database: 0
-    port: 6379
+    port: 8085
 #    port: 8083
     timeout: 6000
-#    password: szhz123456
+    password: HEALTH_CODE(MXtAu4MgXaVOXIJqXO46C+BHdXhOTaExB9y/4LqRuC7VmIscxqe0uC6IVtmt5cLC)
+    jedis:
+      pool:
+        max-active: 1000  # 连接池最大连接数（使用负值表示没有限制）
+        max-wait: -1ms      # 连接池最大阻塞等待时间（使用负值表示没有限制）
+        max-idle: 10      # 连接池中的最大空闲连接
+        min-idle: 5       # 连接池中的最小空闲连接
 
 platform:
 #  gateway-base-url: http://172.18.34.61:9010/szhz-gateway-api
-  gateway-base-url: http://localhost:8085/szhz-gateway-api
+  gateway-base-url: http://172.18.111.185:8090/szhz-gateway-api
+  apisix-url: http://172.18.34.61:9001/apisix/admin
+  #路由本地磁盘文件位置
+  route-file-path: /data/szhz-gateway/routes.json

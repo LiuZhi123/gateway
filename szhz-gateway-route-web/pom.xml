@@ -43,21 +43,21 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-bootstrap</artifactId>
         </dependency>
-
-        <!--    spring cloud gateway整合sentinel的依赖-->
         <dependency>
-            <groupId>com.alibaba.cloud</groupId>
-            <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
-            <version>2.2.8.RELEASE</version>
+            <groupId>com.alibaba.csp</groupId>
+            <artifactId>sentinel-spring-cloud-gateway-adapter</artifactId>
+            <version>1.8.5</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.alibaba.cloud/spring-cloud-alibaba-sentinel-gateway -->
+        <!-- https://mvnrepository.com/artifact/com.alibaba.csp/sentinel-core -->
         <dependency>
-            <groupId>com.alibaba.cloud</groupId>
-            <artifactId>spring-cloud-alibaba-sentinel-gateway</artifactId>
-            <version>2.2.8.RELEASE</version>
+            <groupId>com.alibaba.csp</groupId>
+            <artifactId>sentinel-core</artifactId>
+            <version>1.8.5</version>
         </dependency>
-
-        <!--        sentinel规则持久化依赖    -->
+        <dependency>
+            <groupId>com.custom.starters</groupId>
+            <artifactId>custom-web-log-spring-boot-starters</artifactId>
+        </dependency>
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-core</artifactId>
@@ -77,16 +77,15 @@
             <groupId>com.digital.hangzhou.gateway</groupId>
             <artifactId>szhz-gateway-route-client</artifactId>
         </dependency>
-        <!-- prometheus依赖 -->
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-registry-prometheus</artifactId>
-            <version>1.8.6</version>
-        </dependency>
         <!-- knife4j依赖 -->
         <dependency>
             <groupId>com.github.xiaoymin</groupId>
             <artifactId>knife4j-spring-boot-starter</artifactId>
+        </dependency>
+        <!-- 配置文件加解密 -->
+        <dependency>
+            <groupId>com.github.ulisesbocchio</groupId>
+            <artifactId>jasypt-spring-boot-starter</artifactId>
         </dependency>
     </dependencies>
 

@@ -38,6 +38,7 @@
         <retrofit.starter.version>2.3.4</retrofit.starter.version>
         <knife4j.version>3.0.3</knife4j.version>
         <current.modules.version>0.0.1</current.modules.version>
+        <sentinel.version>1.8.5</sentinel.version>
     </properties>
 
     <dependencyManagement>
@@ -135,15 +136,15 @@
             <properties>
                 <env-profile>dev</env-profile>
             </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
         </profile>
         <profile>
             <id>test</id>
             <properties>
                 <env-profile>test</env-profile>
             </properties>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
         </profile>
         <profile>
             <id>uat</id>

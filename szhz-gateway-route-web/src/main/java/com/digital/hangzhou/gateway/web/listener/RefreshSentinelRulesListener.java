@@ -27,11 +27,15 @@ public class RefreshSentinelRulesListener implements MessageListener {
     @Override
     public void onMessage(Message message, byte[] pattern) {
         log.info("监听到同步sentinel规则事件");
+        GatewayRuleManager.loadRules(new HashSet<>(0));
         Map<String, GatewayFlowRule> cache = redisTemplate.opsForHash().entries(RedisConstant.SENTINEL_RULES);
         Set<GatewayFlowRule> rules = cache.values().stream().collect(Collectors.toSet());
         GatewayRuleManager.loadRules(rules);
+        SystemRuleManager.loadRules(new ArrayList<>(0));
         Object o = redisTemplate.opsForValue().get(RedisConstant.SYSTEM_RULES);
         List<SystemRule> systemRules = null == o ? new ArrayList<>(0) : (List<SystemRule>) o;
         SystemRuleManager.loadRules(systemRules);
+        log.info("当前路由限流规则" + GatewayRuleManager.getRules());
+        log.info("当前系统限流规则：" +  SystemRuleManager.getRules());
     }
 }

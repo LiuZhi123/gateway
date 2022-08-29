@@ -8,6 +8,7 @@ import com.digital.hangzhou.gateway.common.constant.RedisConstant;
 import com.digital.hangzhou.gateway.common.constant.RouteInfoConstant;
 import com.digital.hangzhou.gateway.common.enums.ApiAuthType;
 import com.digital.hangzhou.gateway.common.request.ReleaseRequest;
+import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
@@ -30,14 +31,17 @@ public class RouteDefinitionUtil {
         routeDefinition.setId(request.getApiCode());
         routeDefinition.setUri(new URI(request.getFullPath()));
         //元数据存储API所属部门，用于监控数据统计
-        Map<String,Object> meta = new HashMap<>(1);
+        Map<String,Object> meta = new HashMap<>(2);
         meta.put(RouteInfoConstant.ORG_CODE, request.getMainOrgCode());
+        meta.put(RouteInfoConstant.ROUTE_NAME, request.getName());
         routeDefinition.setMetadata(meta);
         //断言工厂
-        routeDefinition.setPredicates(getPredicateList(request.getApiCode()));
+        List<PredicateDefinition> predicateDefinitions = new ArrayList<>(1);
+        predicateDefinitions.add(getPredicateList(request.getRequestPath(),true));
+        routeDefinition.setPredicates(predicateDefinitions);
         //过滤器链
         List<FilterDefinition> filterDefinitions =  getCommonFilterList(request);
-        filterDefinitions.add(getApiRewritePathFilter(request.getApiCode(), request.getPredicatePath()));
+        filterDefinitions.add(getApiRewritePathFilter(request.getRequestPath(), request.getPredicatePath()));
         routeDefinition.setFilters(filterDefinitions);
         return  routeDefinition;
     }
@@ -51,15 +55,40 @@ public class RouteDefinitionUtil {
                 .append(CharPool.SLASH).append(uri.getHost()).append(CharPool.COLON).append(uri.getPort()).toString();
         routeDefinition.setUri(new URI(routeUri));
         //元数据存储API所属部门，用于监控数据统计
-        Map<String,Object> meta = new HashMap<>(1);
+        Map<String,Object> meta = new HashMap<>(2);
         meta.put(RouteInfoConstant.ORG_CODE, request.getMainOrgCode());
+        meta.put(RouteInfoConstant.ROUTE_NAME, request.getName());
         routeDefinition.setMetadata(meta);
-        routeDefinition.setPredicates(getPredicateList(request.getHtmlInstanceCode()));
+        List<PredicateDefinition> predicateDefinitions = new ArrayList<>();
+        predicateDefinitions.add(getPredicateList(request.getPredicatePath()));
+        if (!request.getAuthType().equals(ApiAuthType.PUBLIC)){
+            predicateDefinitions.add(getQueryPredicate());
+        }
+        routeDefinition.setPredicates(predicateDefinitions);
         List<FilterDefinition> filterDefinitions =  getCommonFilterList(request);
         filterDefinitions.add(getHtmlStripPrefixFilterDefinition());
         routeDefinition.setFilters(filterDefinitions);
         return routeDefinition;
     }
+
+    @SneakyThrows
+    public static RouteDefinition getHtmlAuthRouteDefinition(ReleaseRequest request){
+        RouteDefinition routeDefinition = new RouteDefinition();
+        routeDefinition.setId(request.getHtmlInstanceCode() + "_Auth");
+        URI uri = new URI(request.getFullPath());
+        String routeUri = new StringBuilder().append(uri.getScheme()).append(CharPool.COLON).append(CharPool.SLASH)
+                .append(CharPool.SLASH).append(uri.getHost()).append(CharPool.COLON).append(uri.getPort()).toString();
+        routeDefinition.setUri(new URI(routeUri));
+        List<PredicateDefinition> predicateDefinitions = new ArrayList<>();
+        predicateDefinitions.add(getPredicateList(request.getPredicatePath()));
+        routeDefinition.setPredicates(predicateDefinitions);
+        List<FilterDefinition> filterDefinitions =  new ArrayList<>();
+        filterDefinitions.add(getHtmlStripPrefixFilterDefinition());
+        routeDefinition.setFilters(filterDefinitions);
+        routeDefinition.setOrder(1);
+        return routeDefinition;
+    }
+
 
     @SneakyThrows
     public static RouteDefinition getJsRouteDefinition(ReleaseRequest request){
@@ -69,17 +98,26 @@ public class RouteDefinitionUtil {
         String routeUri = new StringBuilder().append(uri.getScheme()).append(CharPool.COLON).append(CharPool.SLASH)
                 .append(CharPool.SLASH).append(uri.getHost()).append(CharPool.COLON).append(uri.getPort()).toString();
         routeDefinition.setUri(new URI(routeUri));
-        routeDefinition.setPredicates(getPredicateList(request.getHtmlPredicatePath()));
-        List<FilterDefinition> filterDefinitions = new ArrayList<>(1);
-        filterDefinitions.add(getHtmlStripPrefixFilterDefinition());
-//        routeDefinition.setFilters(filterDefinitions);
+        List<PredicateDefinition> predicateDefinitions = new ArrayList<>(1);
+        predicateDefinitions.add(getPredicateList(request.getHtmlPredicatePath()));
+        routeDefinition.setPredicates(predicateDefinitions);
         return routeDefinition;
     }
 
+    /**
+     * A
+     * @param predicatePath
+     * @param isApi
+     * @return
+     */
+    public static PredicateDefinition getPredicateList(String predicatePath , boolean isApi){
+        PredicateDefinition path = new PredicateDefinition();
+        path.setName(RouteInfoConstant.PATH_PREDICATE_FACTORY);
+        path.addArg("patterns", predicatePath);
+        return path;
+    }
 
-    public static List<PredicateDefinition> getPredicateList(String predicatePath){
-
-        List<PredicateDefinition> predicateDefinitions = new ArrayList<>();
+    public static PredicateDefinition getPredicateList(String predicatePath){
         PredicateDefinition path = new PredicateDefinition();
         path.setName(RouteInfoConstant.PATH_PREDICATE_FACTORY);
         if (predicatePath.startsWith(String.valueOf(CharPool.SLASH))){
@@ -87,29 +125,37 @@ public class RouteDefinitionUtil {
         }else {
             path.addArg("patterns", CharPool.SLASH + predicatePath + CharPool.SLASH + "**");
         }
+        return path;
+    }
 
-        predicateDefinitions.add(path);
-        return predicateDefinitions;
+
+    public static PredicateDefinition getQueryPredicate(){
+        PredicateDefinition query = new PredicateDefinition();
+        query.setName("Query");
+        query.addArg("param","X-BG-HMAC-ACCESS-KEY");
+        return query;
     }
 
 
 
     /**
      * 路径重写过滤器（API路由使用）
-     * @param apiCode api编号
-     * @param apiPath api请求路径
+     * @param requestPath api请求路径
+     * @param apiPath api实际访问路径
      * @return
      */
-    public static FilterDefinition getApiRewritePathFilter(String apiCode, String apiPath){
+    public static FilterDefinition getApiRewritePathFilter(String requestPath, String apiPath){
         FilterDefinition rewrite = new FilterDefinition();
         rewrite.setName(RouteInfoConstant.REWRITE_PATH_GATEWAY_FILTER);
-        String regexp = "/" + apiCode;
-        if (apiPath.startsWith("/")){
-            rewrite.addArg("replacement", apiPath);
+        String regexp = requestPath;
+        String replacement = apiPath;
+        if (!requestPath.startsWith("/")){
+            regexp = "/" + regexp;
         }
-        else {
-            rewrite.addArg("replacement", "/" + apiPath);
+        if (!apiPath.startsWith("/")){
+            replacement = "/" + replacement;
         }
+        rewrite.addArg("replacement", replacement);
         rewrite.addArg("regexp", regexp);
         return rewrite;
     }
@@ -124,7 +170,6 @@ public class RouteDefinitionUtil {
             consumerList.stream().forEach(e->buffer.append(e + CharPool.COMMA));
             buffer.deleteCharAt(buffer.length()-1);
         }
-        log.info(buffer.toString());
         return buffer;
     }
 
@@ -163,9 +208,10 @@ public class RouteDefinitionUtil {
         if (CollUtil.isNotEmpty(request.getAuthConfig())){
             Set<String> keys = request.getAuthConfig().keySet();
             for (String  key : keys){
-                FilterDefinition addRequestHeader = new FilterDefinition();
-                addRequestHeader.setName(RouteInfoConstant.ADD_REQUEST_HEADER_GATEWAY_FILTER);
-                addRequestHeader.setArgs(request.getAuthConfig());
+                StringBuilder config = new StringBuilder(RouteInfoConstant.ADD_REQUEST_HEADER_GATEWAY_FILTER);
+                config.append("=").append(key).append(CharPool.COMMA).append(request.getAuthConfig().get(key));
+                FilterDefinition addRequestHeader = new FilterDefinition(config.toString());
+                filterDefinitionList.add(addRequestHeader);
             }
         }
         return filterDefinitionList;

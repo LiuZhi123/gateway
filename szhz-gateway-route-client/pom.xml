@@ -59,5 +59,17 @@
             <groupId>com.digital.hangzhou.gateway</groupId>
             <artifactId>szhz-gateway-route-common</artifactId>
         </dependency>
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.custom.starters</groupId>
+            <artifactId>custom-web-spring-boot-starters</artifactId>
+        </dependency>
     </dependencies>
 </project>

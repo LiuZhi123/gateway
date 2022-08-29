@@ -9,12 +9,17 @@ import com.digital.hangzhou.gateway.web.listener.DelRouteListener;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.netty.util.concurrent.ScheduledFuture;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.SchedulingConfigurer;
+import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 
 
 import javax.annotation.Resource;
@@ -32,6 +37,7 @@ public class GatewayConfig {
     @Resource
     private RefreshSentinelRulesListener refreshSentinelRulesListener;
 
+    @Qualifier(value = "taskExecutor")
     @Resource
     private Executor gatewayExecutor;
 

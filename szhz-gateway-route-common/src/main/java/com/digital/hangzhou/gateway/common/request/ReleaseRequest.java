@@ -92,14 +92,19 @@ public class ReleaseRequest {
     private Integer servicePort;
 
     /**
-     * 匹配地址 /api/*
+     * Path匹配地址, API的真实访问路径
      */
     private String predicatePath;
 
     /**
-     * 单独上架API的时候  完整路径（不含ip、端口、域名）
+     * 单独上架API的时候完整访问地址（协议+ip+端口） 例如http://10.21.14.16:8080
      */
     private String fullPath;
+
+    /**
+     * API请求路径，有断言的接口请求路径为接口的断言路径，没有断言配置的接口使用/+API编号
+     */
+    private String requestPath;
 
     /**
      *界面请求断言

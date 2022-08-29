@@ -27,7 +27,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 @Configuration
 public class BaseConfig {
 
-    @Bean
+    @Bean(name = "taskExecutor")
     public Executor gatewayExecutor(){
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
         taskExecutor.setCorePoolSize(10);
@@ -84,7 +84,8 @@ public class BaseConfig {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.addAllowedHeader("*");
         corsConfiguration.addAllowedMethod("*");
-        corsConfiguration.addAllowedOrigin("*");
+        corsConfiguration.addAllowedOriginPattern("*");
+//        corsConfiguration.addAllowedOrigin("*");
         corsConfiguration.setAllowCredentials(true);
         source.registerCorsConfiguration("/**", corsConfiguration);
         return  new CorsWebFilter(source);

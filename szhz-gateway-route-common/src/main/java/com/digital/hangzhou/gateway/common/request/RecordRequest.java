@@ -26,4 +26,10 @@ public class RecordRequest {
 
     //命中路由
     private String routeId;
+
+    //区域编码
+    private String adCode;
+
+    //请求参数
+    private String requestParams;
 }

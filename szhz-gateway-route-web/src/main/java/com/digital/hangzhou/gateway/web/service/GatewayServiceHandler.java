@@ -1,14 +1,11 @@
 package com.digital.hangzhou.gateway.web.service;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.map.MapUtil;
-import com.custom.starters.customwebspringbootstarters.util.Assert;
 import com.digital.hangzhou.gateway.common.constant.RedisConstant;
 import com.digital.hangzhou.gateway.common.constant.RouteInfoConstant;
 import com.digital.hangzhou.gateway.common.request.GlobalRuleRequest;
 import com.digital.hangzhou.gateway.common.request.ReleaseAuthRequest;
 import com.digital.hangzhou.gateway.web.event.RefreshRouteEvent;
-import com.digital.hangzhou.gateway.web.exception.ErrorMessage;
 import com.digital.hangzhou.gateway.web.util.RouteDefinitionUtil;
 import com.digital.hangzhou.gateway.web.util.SentinelRuleUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -46,14 +43,15 @@ public class GatewayServiceHandler implements CommandLineRunner {
 
     public void refresh(ReleaseAuthRequest request){
         List<RouteDefinition> routeDefinitionList = getRouteByIds(CollUtil.toList(request.getApiInstanceCode()));
-        Assert.isTrue(CollUtil.isEmpty(routeDefinitionList), ErrorMessage.ROUTE_NOT_FOUNT);
+        if (CollUtil.isEmpty(routeDefinitionList)){
+            return;
+        }
         RouteDefinition exist = routeDefinitionList.get(0);
-        refreshRouteEvent.deleteAndNotify(request.getApiInstanceCode());
-        List<FilterDefinition> filters = exist.getFilters().stream().filter(e->e.getName().equals(RouteInfoConstant.CONSUMER_PREDICATE_FACTORY)).collect(Collectors.toList());
-        //配置新的消费者过滤器
+        List<FilterDefinition> filters = exist.getFilters();
         FilterDefinition consumer = new FilterDefinition();
         consumer.setName(RouteInfoConstant.CONSUMER_PREDICATE_FACTORY);
         consumer.addArg("sources" , RouteDefinitionUtil.getConsumer(request.getAppCodes()).toString());
+        filters.removeAll(filters.stream().filter(e->RouteInfoConstant.CONSUMER_PREDICATE_FACTORY.equals(e.getName())).collect(Collectors.toList()));
         filters.add(consumer);
         exist.setFilters(filters);
         refreshRouteEvent.saveAndNotify(exist);
@@ -66,5 +64,4 @@ public class GatewayServiceHandler implements CommandLineRunner {
 
     public void saveSystemRules(GlobalRuleRequest globalRuleRequest){
         sentinelRuleUtil.systemRules(globalRuleRequest.getLimitStatus(), Double.valueOf(globalRuleRequest.getLimitRate()));
-    }
-}
+    }}

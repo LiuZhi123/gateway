@@ -13,6 +13,7 @@ import com.alibaba.csp.sentinel.adapter.gateway.sc.callback.GatewayCallbackManag
 import com.alibaba.csp.sentinel.adapter.gateway.sc.exception.SentinelGatewayBlockExceptionHandler;
 
 import com.alibaba.csp.sentinel.slots.system.SystemRule;
+import com.alibaba.csp.sentinel.slots.system.SystemRuleManager;
 import com.digital.hangzhou.gateway.common.constant.RedisConstant;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
@@ -61,7 +62,7 @@ public class SentinelConfig {
     }
 
     //开启限流过滤器
-    @Bean
+    @Bean(name = "sentinelFilter")
     @Order(Ordered.HIGHEST_PRECEDENCE)
     public GlobalFilter sentinelGatewayFilter() {
         return new SentinelGatewayFilter();
@@ -93,7 +94,8 @@ public class SentinelConfig {
         Object o = redisTemplate.opsForValue().get(RedisConstant.SYSTEM_RULES);
         // 加载系统限流规则
         List<SystemRule> systemRuleCache = null == o ? new ArrayList<>(0) : (List<SystemRule>) o;
-        log.info("<-------初始化加载网关限流规则 {} 条-------->", rules.size() + systemRuleCache.size());
+        SystemRuleManager.loadRules(systemRuleCache);
+        log.info("<-------初始化加载网关限流规则 {} 条-------->", GatewayRuleManager.getRules().size() + SystemRuleManager.getRules().size());
     }
 
     /**

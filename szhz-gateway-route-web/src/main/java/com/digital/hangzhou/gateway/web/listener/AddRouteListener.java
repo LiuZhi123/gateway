@@ -28,9 +28,6 @@ public class AddRouteListener implements MessageListener {
     public void onMessage(Message message, byte[] pattern) {
         log.info("监听到增加路由事件: " + message.toString());
         String info = message.toString().substring(1, message.toString().length()-1);
-        if (LocalCacheRepository.ROUTE_DEFINITION_CACHE.containsKey(info)){
-            return;
-        }
         RouteDefinition routeDefinition =  (RouteDefinition) redisTemplate.opsForHash().get(RedisConstant.ROUTE_KEY, info);
         if (null != routeDefinition){
             refreshRouteEvent.save(routeDefinition);

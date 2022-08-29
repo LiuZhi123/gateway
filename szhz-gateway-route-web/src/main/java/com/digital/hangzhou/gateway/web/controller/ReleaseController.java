@@ -1,11 +1,13 @@
 package com.digital.hangzhou.gateway.web.controller;
 
+import cn.hutool.core.util.StrUtil;
 import com.custom.starters.customwebspringbootstarters.core.result.R;
 import com.digital.hangzhou.gateway.common.request.GlobalRuleRequest;
 import com.digital.hangzhou.gateway.common.request.ReleaseAuthRequest;
 import com.digital.hangzhou.gateway.common.request.ReleaseRequest;
 import com.digital.hangzhou.gateway.web.core.ApiRouteOperate;
 import com.digital.hangzhou.gateway.web.core.HtmlRouteOperate;
+import com.digital.hangzhou.gateway.web.service.DataMigrateService;
 import com.digital.hangzhou.gateway.web.service.GatewayServiceHandler;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -28,6 +30,8 @@ public class ReleaseController {
     private ApiRouteOperate apiRouteOperate;
     @Resource
     private HtmlRouteOperate htmlRouteOperate;
+    @Resource
+    private DataMigrateService dataMigrateService;
 
     @ApiOperation(value =  "生成路由并发送通知节点更新")
     @PostMapping("/save")
@@ -68,5 +72,19 @@ public class ReleaseController {
     public R<Boolean> saveSystemRules(@RequestBody GlobalRuleRequest request){
         handler.saveSystemRules(request);
         return R.ok(true);
+    }
+
+    @ApiOperation("数据迁移接口")
+    @PostMapping("/dataMigrate")
+    public R<String> dateMigrate(@RequestParam String accessKey){
+        int num = dataMigrateService.dataMigrate();
+        return R.ok("总计迁移了" + num  + "条数据");
+    }
+
+    @ApiOperation("手动导入路由并刷新缓存接口")
+    @PostMapping("/importData")
+    public R<String> importData(@RequestParam String accessKey){
+        String result = dataMigrateService.importData();
+        return R.ok(result);
     }
 }

@@ -6,6 +6,8 @@ public class RouteInfoConstant {
 
     public static final String API_KEY = "apiKey";
 
+    public static final String ROUTE_NAME = "name";
+
     /**
      * 过滤器/断言 工厂的名称
      */
@@ -37,6 +39,8 @@ public class RouteInfoConstant {
     public static final String RESPONSE_STATUS = "status";
 
     public static final String ROUTE_ID  = "routeId";
+
+    public static final String REQUEST_PARAMS = "requestParam";
 
     /**
      * 流量统计指标

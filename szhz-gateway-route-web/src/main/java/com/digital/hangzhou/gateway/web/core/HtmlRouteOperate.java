@@ -1,5 +1,6 @@
 package com.digital.hangzhou.gateway.web.core;
 
+import com.digital.hangzhou.gateway.common.enums.ApiAuthType;
 import com.digital.hangzhou.gateway.common.enums.ReleaseStatusEnum;
 import com.digital.hangzhou.gateway.common.request.ReleaseRequest;
 import com.digital.hangzhou.gateway.web.cache.LocalCacheRepository;
@@ -21,11 +22,16 @@ public class HtmlRouteOperate implements RouteOperate{
     @Override
     public void save(ReleaseRequest request) {
         if (request.getReleaseStatus() == ReleaseStatusEnum.OFFLINE){
-            delete(request.getApiCode());
+            delete(request.getHtmlInstanceCode());
+            delete(request.getHtmlInstanceCode() + "_Auth");
             return;
         }
         //界面路由需要生成两个html和js路由，其中html路由增加监控，鉴权等过滤器配置
         RouteDefinition html = RouteDefinitionUtil.getHtmlRouteDefinition(request);
+        if (!request.getAuthType().equals(ApiAuthType.PUBLIC)){
+            RouteDefinition htmlAuth = RouteDefinitionUtil.getHtmlAuthRouteDefinition(request);
+            refreshRouteEvent.saveAndNotify(htmlAuth);
+        }
         refreshRouteEvent.saveAndNotify(html);
         sentinelRuleUtil.addGatewaySentinelRule(request.getHtmlInstanceCode(), request.getConfig());
         //js路由可能会重复

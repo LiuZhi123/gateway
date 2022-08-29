@@ -1,20 +1,34 @@
 spring:
+  main:
+    allow-bean-definition-overriding: true
   profiles:
     active: @env-profile@
   application:
     name: szhz-gateway-route
-  main:
-    allow-bean-definition-overriding: true
+  cloud:
+    gateway:
+      httpclient:
+        ssl:
+          use-insecure-trust-manager: true
+  logging:
+    #日志等级
+    level: INFO
+    #日志保存时间
+    existsDays: 7
+    #日志存储位置
+    filePath: ./logs
 
 
 
-
-#  cloud:
-#    sentinel:
-#      transport:
-#        port: 8099
-#        dashboard: localhost:8080
-#      eager: true
+##加密密码相关
+jasypt:
+  encryptor:
+    property:
+      prefix: HEALTH_CODE(   #  加密前缀
+      suffix: )            #  加密后缀
+    password: digital-hangzhou@2021 # 加密密钥
+    #https://github.com/ulisesbocchio/jasypt-spring-boot/issues/256
+    bootstrap: false
 
 
 
@@ -57,21 +71,24 @@ spring:
 #          filters:
 #            - StripPrefix=1     # StripPrefix参数表示在将请求发送到下游之前从请求中剥离的路径个数
 
+retrofit:
+  # 日志打印配置
+  log:
+    # 启用日志打印
+    enable: false
+    # 日志打印拦截器
+    logging-interceptor: com.github.lianjiatech.retrofit.spring.boot.interceptor.DefaultLoggingInterceptor
+    # 全局日志打印级别
+    global-log-level: info
+    # 全局日志打印策略
+    global-log-strategy: body
 
 
 management:
   endpoints:
     web:
       exposure:
-        include: prometheus,metrics,routes,gateway
-  endpoint:
-    health:
-      show-details: ALWAYS
-  metrics:
-    export:
-      prometheus:
-        enabled: true
-        descriptions: true
+        include: '*'
 
 
 server:
