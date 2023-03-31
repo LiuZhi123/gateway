@@ -86,10 +86,15 @@ retrofit:
 
 management:
   endpoints:
-    web:
-      exposure:
-        include: '*'
-
+    enabled-by-default: false
+#    web:
+#      exposure:
+#        include: '*'
+  endpoint:
+    info:
+      enabled: false
+    health:
+      enabled: false
 
 server:
   port: 8082

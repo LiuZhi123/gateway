@@ -97,6 +97,11 @@
                 <artifactId>lombok</artifactId>
                 <version>${lombok.version}</version>
             </dependency>
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-crypto</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
             <!--引入其他模块-->
             <dependency>
                 <groupId>com.digital.hangzhou.gateway</groupId>
@@ -168,6 +173,30 @@
             <id>hz</id>
             <properties>
                 <env-profile>hz</env-profile>
+            </properties>
+        </profile>
+        <profile>
+            <id>hsj</id>
+            <properties>
+                <env-profile>hsj</env-profile>
+            </properties>
+        </profile>
+        <profile>
+            <id>tzb</id>
+            <properties>
+                <env-profile>tzb</env-profile>
+            </properties>
+        </profile>
+        <profile>
+            <id>tzTest</id>
+            <properties>
+                <env-profile>tzTest</env-profile>
+            </properties>
+        </profile>
+        <profile>
+            <id>hsjTest</id>
+            <properties>
+                <env-profile>hsjTest</env-profile>
             </properties>
         </profile>
     </profiles>

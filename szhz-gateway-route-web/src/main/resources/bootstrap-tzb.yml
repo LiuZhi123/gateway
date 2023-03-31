@@ -1,10 +1,11 @@
 spring:
   redis:
-    host: 172.18.91.21
-    database: 3
-    port: 4329
+    host: 10.129.24.230
+    port: 6379
     timeout: 6000
-    password: ArBNSxnzXNzndgkbWyVX4Gt5
+    database: 0
+    #    password: HEALTH_CODE(2QrAg3Si5ct5xfZb7zkhd4mfW7R5KA5ZdR3wvHVYq9+IVo4oksuh3EmLg/MG3EOY)
+    password: HEALTH_CODE(uhD8j13OG4mchxoTlAg9AbJujvuL+Xi95Ttk0kfkkbyHKIcEytco47SU0TssvSJq)
     jedis:
       pool:
         max-active: 1000  # 连接池最大连接数（使用负值表示没有限制）
@@ -12,7 +13,8 @@ spring:
         max-idle: 10      # 连接池中的最大空闲连接
         min-idle: 5       # 连接池中的最小空闲连接
 
+#平台相关配置
 platform:
-  gateway-base-url: http://172.18.91.62:15402/szhz-gateway-api
+  gateway-base-url: http://localhost:4311/szhz-gateway-api
   #路由本地磁盘文件位置
   route-file-path: /data/szhz-gateway/routes.json

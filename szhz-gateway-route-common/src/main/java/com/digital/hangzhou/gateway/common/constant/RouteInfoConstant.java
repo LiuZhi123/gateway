@@ -8,6 +8,8 @@ public class RouteInfoConstant {
 
     public static final String ROUTE_NAME = "name";
 
+    public static final String ROUTE_PATH = "path";
+
     /**
      * 过滤器/断言 工厂的名称
      */
@@ -24,6 +26,12 @@ public class RouteInfoConstant {
     public static final String MONITOR_GATEWAY_FILTER = "Monitor";
 
     public static final String REWRITE_PATH_GATEWAY_FILTER = "RewritePath";
+
+    public static final String REDIRECT_GATEWAY_FILTER = "Redirect";
+
+    public static final String SIGN_FACTORY = "Sign";
+
+    public static final String REFRESH_TOKEN_FACTORY = "RefreshToken";
 
     /**
      * 路由监控指标

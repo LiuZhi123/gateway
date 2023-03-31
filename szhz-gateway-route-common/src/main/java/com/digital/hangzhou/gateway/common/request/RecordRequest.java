@@ -32,4 +32,16 @@ public class RecordRequest {
 
     //请求参数
     private String requestParams;
+
+    //响应时长秒
+    private String responseTime;
+
+    //响应长度 kb
+    private String responseSize;
+
+    //响应结果
+    private String responseResult;
+
+    //ak
+    private String appKey;
 }

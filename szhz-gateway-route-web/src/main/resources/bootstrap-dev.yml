@@ -13,6 +13,6 @@ spring:
         min-idle: 5       # 连接池中的最小空闲连接
 
 platform:
-  gateway-base-url: http://172.18.91.62:15402/szhz-gateway-api
+  gateway-base-url: http://localhost:8085/szhz-gateway-api
   #路由本地磁盘文件位置
-  route-file-path: /data/szhz-gateway/routes.json
+  route-file-path: C:\Users\lz\Desktop\routes.json

@@ -34,10 +34,6 @@ public class ReleaseRequest {
     @Size(max = 32, message = "接口编码" + CommonConstant.ERROR_LENTH_MESSAGE + 32)
     String apiCode;
 
-    /**
-     * 分组编号
-     */
-    String groupCode;
 
     /**
      * 界面实例编码
@@ -46,9 +42,10 @@ public class ReleaseRequest {
     private String htmlInstanceCode;
 
     /**
-     * 分组下 需要禁止访问的API URL 列表
+     * 界面接入形式,标准-STANDARD，重定向-REDIRECT
      */
-    private List<String> filterList;
+    private String htmlAccessType;
+
 
     /**
      * 安全控制：PUBLIC--公开；DISABLE--需授权
@@ -63,7 +60,7 @@ public class ReleaseRequest {
     private String name;
 
     /**
-     * 分组/API描述
+     * API描述
      */
     private String description;
 
@@ -76,58 +73,57 @@ public class ReleaseRequest {
     /**
      * 传输协议
      */
-//	@NotNull(message = "传输协议不能为空")
     private ProtocolEnum serviceProtocol;
 
     /**
      * 上架分组/API服务地址
      */
-//	@NotBlank(message = "上架分组/API服务地址不能为空")
     private String serviceAddress;
 
     /**
      *  上架分组/API服务端口
      */
-//	@NotNull(message = "上架分组/API服务端口不能为空")
     private Integer servicePort;
 
     /**
-     * Path匹配地址, API的真实访问路径
+     * 转发下游的服务地址，用于RewritePath过滤器改写真实的请求地址
      */
     private String predicatePath;
 
     /**
-     * 单独上架API的时候完整访问地址（协议+ip+端口） 例如http://10.21.14.16:8080
+     * 转发下游的主机地址，用于配置RouteDefinition的Uri属性
      */
     private String fullPath;
 
     /**
-     * API请求路径，有断言的接口请求路径为接口的断言路径，没有断言配置的接口使用/+API编号
+     * API的请求路径,用于配置请求路径的断言工厂及路由转发路径改写的过滤器
      */
     private String requestPath;
 
     /**
-     *界面请求断言
+     *界面js路由路径
      */
     private String htmlPredicatePath;
 
     /**
-     * Api配置
+     * api配置，目前用于解析限流信息, 配置路由侧的sentinel限流规则
      */
     private String config;
 
     /**
-     * 应用白名单
+     * 基于应用信息鉴权时的应用白名单,请求时使用的apiKey须在此集合中时才放行，
+     * 目前使用的DISABLE和AUTHOR的
+     * 安全控制级别的白名单会在此集合中，基于签名的白名单在缓存中存储
      */
     private Set<String> appCodes;
 
     /**
-     *部门编号，用于基于部门维度统计数据
+     * 部门编号，用于基于部门维度统计数据
      */
     private String mainOrgCode;
 
     /**
-     * 鉴权模板配置
+     * 鉴权模板配置，在请求头中添加指定的kv，用于配置路由请求头过滤器
      */
     private Map<String ,String> authConfig;
 

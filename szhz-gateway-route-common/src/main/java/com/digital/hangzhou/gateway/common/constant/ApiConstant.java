@@ -7,4 +7,7 @@ public class ApiConstant {
     //限流速率
     public static final String API_LIMIT_RATE = "qps";
 
+    public static final String whiteIpStatus = "whiteIpStatus";
+
+    public static final String whiteIpSet = "whiteIpSet";
 }

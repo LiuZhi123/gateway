@@ -1,6 +1,8 @@
 package com.digital.hangzhou.gateway.web.core;
 
+import cn.hutool.core.util.StrUtil;
 import com.digital.hangzhou.gateway.common.enums.ApiAuthType;
+import com.digital.hangzhou.gateway.common.enums.HtmlAccessType;
 import com.digital.hangzhou.gateway.common.enums.ReleaseStatusEnum;
 import com.digital.hangzhou.gateway.common.request.ReleaseRequest;
 import com.digital.hangzhou.gateway.web.cache.LocalCacheRepository;
@@ -18,6 +20,8 @@ public class HtmlRouteOperate implements RouteOperate{
     private RefreshRouteEvent refreshRouteEvent;
     @Resource
     private SentinelRuleUtil sentinelRuleUtil;
+    @Resource
+    private RouteDefinitionUtil routeDefinitionUtil;
 
     @Override
     public void save(ReleaseRequest request) {
@@ -26,20 +30,25 @@ public class HtmlRouteOperate implements RouteOperate{
             delete(request.getHtmlInstanceCode() + "_Auth");
             return;
         }
-        //界面路由需要生成两个html和js路由，其中html路由增加监控，鉴权等过滤器配置
-        RouteDefinition html = RouteDefinitionUtil.getHtmlRouteDefinition(request);
-        if (!request.getAuthType().equals(ApiAuthType.PUBLIC)){
-            RouteDefinition htmlAuth = RouteDefinitionUtil.getHtmlAuthRouteDefinition(request);
-            refreshRouteEvent.saveAndNotify(htmlAuth);
-        }
+        RouteDefinition html = routeDefinitionUtil.getHtmlRouteDefinition(request);
         refreshRouteEvent.saveAndNotify(html);
         sentinelRuleUtil.addGatewaySentinelRule(request.getHtmlInstanceCode(), request.getConfig());
-        //js路由可能会重复
-        if (LocalCacheRepository.ROUTE_DEFINITION_CACHE.containsKey(request.getHtmlPredicatePath())){
-            return;
+        //非重定向的界面不需要生成js路由
+        if (StrUtil.isNotBlank(request.getHtmlAccessType()) && StrUtil.equals(HtmlAccessType.STANDARD.name(), request.getHtmlAccessType())){
+            //界面路由需要生成两个html和js路由，其中html路由增加监控，鉴权等过滤器配置
+            if (!request.getAuthType().equals(ApiAuthType.PUBLIC)){
+                RouteDefinition htmlAuth = routeDefinitionUtil.getHtmlAuthRouteDefinition(request);
+                refreshRouteEvent.saveAndNotify(htmlAuth);
+            }
+            //js请求的路由可能会重复，不考虑刷新
+            if (LocalCacheRepository.ROUTE_DEFINITION_CACHE.containsKey(request.getHtmlPredicatePath())){
+                return;
+            }
+            else {
+                RouteDefinition js = routeDefinitionUtil.getJsRouteDefinition(request);
+                refreshRouteEvent.saveAndNotify(js);
+            }
         }
-        RouteDefinition js = RouteDefinitionUtil.getJsRouteDefinition(request);
-        refreshRouteEvent.saveAndNotify(js);
     }
 
     @Override

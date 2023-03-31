@@ -15,32 +15,31 @@ public enum ErrorMessage implements IErrorCode {
     HTTP_ERROR_401(401, "访问该路由需提供ak信息"),
     HTTP_ERROR_402(402,"路由ak校验失败，请检查ak是否正确"),
     HTTP_ERROR_403(403,"您的IP无访问此路由的权限"),
-    HTTP_ERROR_404(404,"未找到路由"),
 
     /**
      * 下游通用异常
      */
+    REFRESH_TOKEN_REQUEST_BAD(20001, "调用公共平台获取请求密钥失败"),
 
     /**
      * 通用模块
      */
-    HEADER_ERROR(100100401, "请求头信息缺失"),
     GATEWAY_CENTER_ERROR(500, "请求地址发生内部错误;请查看请求地址服务是否正常"),
     GATEWAY_CENTER_NOT_FOUND(404, "请求的地址资源不存在;请核对请求地址是否正确或请求地址资源服务是否正常"),
     METHOD_NOT_ALLOWED(405, "请求地址不支持当前Method模式"),
     BAD_REQUEST(400, "请求错误"),
-    REQUEST_URL_ILLEGAL(100100406, "请求地址不合法，网关暂不支持访问非接口编号请求地址"),
-    APP_CODE_ILLEGAL(100100407, "请求地址不合法，请求地址是非法的接口编号"),
-    WHITE_LIST_NOT_EXIST(100100408, "接口访问白名单不存在"),
-    APP_CODE_NOT_EXIST_PATH(100100409, "接口编号未匹配到对应的请求URI"),
-    API_STATUS_NOT_ON(100100410, "接口信息不存在，上架API列表未搜索到此接口"),
-    APP_INFO_FIND_NOT_URL(100100411, "匹配到的接口未获取到请求的URL"),
     GATEWAY_TIMEOUT_MESSAGE(502, "请求地址访问超时,请就核对请求地址是否正常"),
 
     /**
      * 业务报错
      */
-    ROUTE_NOT_FOUNT(200100401, "根据路由编号查询路由信息失败");
+    HEADER_ERROR(10001, "请求头缺失appKey或sign或time信息"),
+    SIGN_ERROR(10002, "签名信息验证失败"),
+    TIME_ERROR(10003, "时间戳参数异常,请重新获取"),
+    SIGN_EXPIRED(10004, "签名信息已过期,请重新获取"),
+    APP_INFO_IS_NOT_AUTHORED_BY_API(10005, "该应用没有权限访问此路由"),
+
+    ;
     private Integer code;
 
     private String msg;

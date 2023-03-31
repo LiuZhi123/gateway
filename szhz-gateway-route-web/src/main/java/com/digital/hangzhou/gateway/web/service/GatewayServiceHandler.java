@@ -3,6 +3,7 @@ package com.digital.hangzhou.gateway.web.service;
 import cn.hutool.core.collection.CollUtil;
 import com.digital.hangzhou.gateway.common.constant.RedisConstant;
 import com.digital.hangzhou.gateway.common.constant.RouteInfoConstant;
+import com.digital.hangzhou.gateway.common.enums.ApiAuthType;
 import com.digital.hangzhou.gateway.common.request.GlobalRuleRequest;
 import com.digital.hangzhou.gateway.common.request.ReleaseAuthRequest;
 import com.digital.hangzhou.gateway.web.event.RefreshRouteEvent;
@@ -40,19 +41,20 @@ public class GatewayServiceHandler implements CommandLineRunner {
         log.info("<------------初始化路由信息加载完毕------------------>");
     }
 
-
     public void refresh(ReleaseAuthRequest request){
-        List<RouteDefinition> routeDefinitionList = getRouteByIds(CollUtil.toList(request.getApiInstanceCode()));
-        if (CollUtil.isEmpty(routeDefinitionList)){
+        //针对非AK校验类型的  不需要添加消费者过滤器
+        if(!(request.getAuthType() == ApiAuthType.DISABLE || request.getAuthType() == ApiAuthType.AUTHOR))
             return;
-        }
+        List<RouteDefinition> routeDefinitionList = getRouteByIds(CollUtil.toList(request.getApiInstanceCode()));
+        if (CollUtil.isEmpty(routeDefinitionList))
+            return;
         RouteDefinition exist = routeDefinitionList.get(0);
-        List<FilterDefinition> filters = exist.getFilters();
+        ArrayList<FilterDefinition> filters = CollUtil.newArrayList(exist.getFilters());
         FilterDefinition consumer = new FilterDefinition();
         consumer.setName(RouteInfoConstant.CONSUMER_PREDICATE_FACTORY);
         consumer.addArg("sources" , RouteDefinitionUtil.getConsumer(request.getAppCodes()).toString());
         filters.removeAll(filters.stream().filter(e->RouteInfoConstant.CONSUMER_PREDICATE_FACTORY.equals(e.getName())).collect(Collectors.toList()));
-        filters.add(consumer);
+        filters.add(1,consumer);
         exist.setFilters(filters);
         refreshRouteEvent.saveAndNotify(exist);
     }
